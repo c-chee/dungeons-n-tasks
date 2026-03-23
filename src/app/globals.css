@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Arcade';
+  src: url('/fonts/arcade/ARCADE_N.TTF') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+:root {
+  /* ---------------------
+      Color Palette
+  ------------------------ */
+  --light-blue: #cae0d8;
+  --light-green: #afbb8c;
+  --dark-green: #43725b;
+  --brown: #9f837a;
+  --dark-brown: #3d242c;
+  --yellow: #f0ce6f;
+  --red: #dd7874;
+  --dark-red: #872522;
+
+  /* ---------------------
+      Variables
+  ------------------------ */
+  --font-arcade: 'Arcade', sans-serif;
+
+  --background: var(--dark-green);
+  --foreground: var(--dark-brown);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.arcade {
+  font-family: 'Arcade', sans-serif;
+}
+
+.glow-text {
+  text-shadow:
+    0 0 5px #ffffff,
+    0 0 10px #ffffff,
+    0 0 20px #ffffff,
+    0 0 40px #ffffff;
+}
