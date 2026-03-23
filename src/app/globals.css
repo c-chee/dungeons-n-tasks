@@ -42,6 +42,19 @@ body {
   text-shadow:
     0 0 5px #ffffff,
     0 0 10px #ffffff,
-    0 0 20px #ffffff,
-    0 0 40px #ffffff;
+    0 0 25px #ffffff,
+    0 0 45px #ffffff;
+}
+
+/* White outline */
+.outline-text {
+  text-shadow:
+    -2px -2px 0 #fff,
+      2px -2px 0 #fff,
+    -2px  2px 0 #fff,
+      2px  2px 0 #fff,
+      0px  2px 0 #fff,
+      2px  0px 0 #fff,
+    -2px  0px 0 #fff,
+      0px -2px 0 #fff;
 }

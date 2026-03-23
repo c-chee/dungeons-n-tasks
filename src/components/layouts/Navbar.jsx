@@ -13,7 +13,7 @@ export default function Navbar() {
                     {/* === Logo === */}
                     <div>
                         <p
-                            className="text-[16px] md:text-[18px] lg:text-[20px] arcade font-bold glow-text cursor-pointer"
+                            className="text-[16px] md:text-[18px] lg:text-[20px] arcade font-bold outline-text cursor-pointer"
                             onClick={() => router.push('/')}
                         >
                             <span>Dungeons</span>

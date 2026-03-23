@@ -3,7 +3,10 @@ import { useRouter } from 'next/navigation';
 import BubbleButton from '@/components/ui/BubbleButton';
 
 export default function Hero() {
+    const router = useRouter(); 
+    
     return (
+        
         <section className='h-screen w-full bg-[url("/images/cat-fishing.png")] bg-cover bg-center'>
             <div className='
                 flex flex-col 
@@ -19,7 +22,7 @@ export default function Hero() {
 
                 <p className='text-[16px] mt-[1em] md:mt-[2em] pb-[4px]'>Scroll to learn more or </p>
 
-                <BubbleButton onClick={() => router.push('/signup')}>
+                <BubbleButton onClick={() => router.push('/register')}>
                     Start your adventure
                 </BubbleButton>
 
