@@ -16,7 +16,7 @@ export default function Hero() {
                 -mt-[5em] md:-mt-[6em] lg:-mt-[9em]'
             >
 
-                <h1 className='text-center text-[30px] lg:text-[40px] font-bold text-[var(--dark-red)]'>Productivity is better with a party</h1>
+                <h1 className='arcade outline-text text-center text-[25px] lg:text-[28px] font-bold text-[var(--dark-red)]'>Productivity is better with a party</h1>
 
                 <p className='m-2 lg:m-4 text-[18px] max-w-[30em] font-[500]'>Create or join guilds, collaborate on shared goals, and keep each other accountable while leveling up in real life.</p>
 
