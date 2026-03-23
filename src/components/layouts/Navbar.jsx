@@ -27,7 +27,7 @@ export default function Navbar() {
                             Login
                         </BubbleButton>
 
-                        <BubbleButton onClick={() => router.push('/signup')}>
+                        <BubbleButton onClick={() => router.push('/register')}>
                             Register
                         </BubbleButton>
                     </div>
