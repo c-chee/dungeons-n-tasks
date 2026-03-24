@@ -1,18 +1,20 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { TextField } from './TextField';
+import TextField  from './TextField';
 import BubbleButton from '../ui/BubbleButton';
 
 export default function RegisterForm() {
     const router = useRouter();
+
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const isValidEmail = (email) =>
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const [loading, setLoading] = useState(false);
+
+    const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
     const isValid =
         firstName &&
@@ -20,13 +22,51 @@ export default function RegisterForm() {
         isValidEmail(email) &&
         password.length >= 8;
 
-    return (
-        <div className='w-full h-full flex flex-col justify-center items-center p-8 gap-4'>
+    const handleSubmit = async (e) => {
+        e.preventDefault();
 
-            {/* -- Title -- */}
+        if (!isValid || loading) return;
+
+        setLoading(true);
+
+        try {
+            const res = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                first_name: firstName,
+                last_name: lastName,
+                email,
+                password,
+                }),
+            });
+
+            const data = await res.json();
+
+            if (!data.success) {
+                alert(data.error || 'Register failed');
+                setLoading(false);
+                return;
+            }
+
+            // Redirect to login
+            router.push('/login');
+
+        } catch (err) {
+            // console.error(err);
+            alert('Something went wrong');
+            setLoading(false);
+        }
+    };
+
+    return (
+        <form
+            onSubmit={handleSubmit}
+            className='w-full h-full flex flex-col justify-center items-center p-8 gap-4'
+        >
             <h2 className='arcade text-2xl font-bold'>Register</h2>
 
-            {/* -- First Name -- */}
+            {/* First name */}
             <TextField
                 label='First Name'
                 value={firstName}
@@ -34,7 +74,7 @@ export default function RegisterForm() {
                 required
             />
 
-            {/* -- Last Name -- */}
+            {/* Last name */}
             <TextField
                 label='Last Name'
                 value={lastName}
@@ -42,7 +82,7 @@ export default function RegisterForm() {
                 required
             />
 
-            {/* -- Email -- */}
+            {/* Email */}
             <TextField
                 label='Email'
                 type='email'
@@ -51,7 +91,7 @@ export default function RegisterForm() {
                 required
             />
 
-            {/* -- Password -- */}
+            {/* Password */}
             <TextField
                 label='Password'
                 type='password'
@@ -60,25 +100,23 @@ export default function RegisterForm() {
                 required
             />
 
-            {/* -- Register Submit Button -- */}
-            <BubbleButton
-                onClick={() => {
-                if (!isValid) return;
-                console.log('register', { firstName, lastName, email, password });
-                }}
-            >
-                Register
+            {/* Submit Button */}
+            <BubbleButton type='submit' disabled={!isValid || loading}>
+                {loading ? 'Creating...' : 'Register'}
             </BubbleButton>
 
             <p className='text-[15px]'>
+
                 Already have an account?{' '}
                 <span
-                className='cursor-pointer font-bold'
-                onClick={() => router.push('/login')}
+                    className='cursor-pointer font-bold'
+                    onClick={() => router.push('/login')}
                 >
-                Login
+                    Login
                 </span>
+
             </p>
-        </div>
+            
+        </form>
     );
 }

@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 
-export function TextField({
+export default function TextField({
     label,
     type = 'text',
     value,
@@ -17,14 +17,15 @@ export function TextField({
         if (required && !value) return `${label} is required`;
 
         if (type === 'email') {
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (value && !emailRegex.test(value)) {
-            return 'Invalid email format';
-        }
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+            if (value && !emailRegex.test(value)) {
+                return 'Invalid email format';
+            }
         }
 
         if (isPassword && value.length < 8) {
-        return 'Password must be at least 8 characters';
+            return 'Password must be at least 8 characters';
         }
 
         return '';
