@@ -28,6 +28,15 @@ export async function getDashboardData(userId) {
 
     const guild = guildMembership[0] || null;
 
+    // 2b. Pending guild requests (user has sent a request but not approved yet)
+    const [pendingGuildRequests] = await pool.query(
+        `SELECT g.id AS guild_id, g.name, gm.status
+         FROM GuildMembers gm
+         JOIN Guilds g ON g.id = gm.guild_id
+         WHERE gm.user_id = ? AND gm.status = 'pending'`,
+        [userId]
+    );
+
     let joinCode = null;
     if (guild) {
         const [guildRows] = await pool.query(
@@ -85,6 +94,7 @@ export async function getDashboardData(userId) {
         party,
         guildRequests,
         partyRequests,
+        pendingGuildRequests,
         quests: quests || {
             guildQuests: [],
             partyQuests: [],

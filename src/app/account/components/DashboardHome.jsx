@@ -5,9 +5,10 @@ import CurrentMissionsCard from './cards/CurrentMissionsCard';
 import GuildContainer from './guild/GuildCardContainer';
 import PartyContainer from './cards/PartyCardContainer';
 import JoinCard from './cards/JoinCard';
+import PendingRequestCard from './cards/PendingRequestCard';
 
 export default function DashboardHome({ data }) {
-    const { user, guild, party, guildRequests, partyRequests, quests, joinCode } = data;
+    const { user, guild, party, guildRequests, partyRequests, pendingGuildRequests, quests, joinCode } = data;
     const [guildCode, setGuildCode] = useState('');
     const [partyCode, setPartyCode] = useState('');
 
@@ -17,7 +18,7 @@ export default function DashboardHome({ data }) {
         await fetch('/api/guild/join', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: guildCode }),
+            body: JSON.stringify({ joinCode: guildCode }),
         });
         window.location.reload();
     }
@@ -46,7 +47,38 @@ export default function DashboardHome({ data }) {
     // --- Reject guild request ---
     async function rejectGuild(userId) {
         console.log('Reject guild request', userId);
-        // Add reject API later
+    }
+
+    // --- Leave guild ---
+    async function leaveGuild() {
+        if (!guild) return;
+        const res = await fetch('/api/guild/leave', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ guildId: guild.guild_id }),
+        });
+        if (res.ok) window.location.reload();
+    }
+
+    // --- Cancel pending guild request ---
+    async function cancelGuildRequest(guildId) {
+        const res = await fetch('/api/guild/cancel', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ guildId }),
+        });
+        if (res.ok) window.location.reload();
+    }
+
+    // --- Remove member (guild master only) ---
+    async function removeMember(memberId) {
+        if (!guild) return;
+        const res = await fetch('/api/guild/remove', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ guildId: guild.guild_id, memberId }),
+        });
+        if (res.ok) window.location.reload();
     }
 
     // --- Approve party requests ---
@@ -64,7 +96,12 @@ export default function DashboardHome({ data }) {
                         bg-[url("/images/home-bg.png")] bg-cover bg-center bg-no-repeat'>
 
             {/* Stats */}
-            <StatsCard coins={user.coins} level={user.level} />
+            <StatsCard 
+                coins={user.coins} 
+                level={user.level} 
+                guild={guild}
+                onLeave={leaveGuild}
+            />
 
             {/* Current Missions */}
             <CurrentMissionsCard quests={quests?.assignedQuests || []} />
@@ -79,6 +116,12 @@ export default function DashboardHome({ data }) {
                     joinCode={joinCode}
                     onApprove={approveGuild}
                     onReject={rejectGuild}
+                    onRemoveMember={removeMember}
+                />
+            ) : pendingGuildRequests?.length > 0 ? (
+                <PendingRequestCard 
+                    requests={pendingGuildRequests} 
+                    onCancel={cancelGuildRequest}
                 />
             ) : (
                 <JoinCard
