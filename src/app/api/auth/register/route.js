@@ -9,7 +9,7 @@ export async function POST(req) {
     try {
         // Parse request body
         const body = await req.json();
-        const { first_name, last_name, email, password } = body;
+        const { first_name, last_name, email, password, account_type, guild_name } = body;
 
         // Check if email already exists
         const [existingUsers] = await pool.query(
@@ -27,6 +27,25 @@ export async function POST(req) {
         // Hash password
         const password_hash = await bcrypt.hash(password, 12);
 
+        // If guild master ...
+        if (account_type === 'guild_master') {
+            // Create guild
+            const [guildResult] = await pool.query(
+                `INSERT INTO Guilds (name, owner_id) VALUES (?, ?)`,
+                [guild_name, userId]
+            );
+
+            const guildId = guildResult.insertId;
+
+            // Add user as guild master
+            await pool.query(
+                `INSERT INTO GuildMembers (guild_id, user_id, role, status)
+                VALUES (?, ?, 'guild_master', 'approved')`,
+                [guildId, userId]
+            );
+        }
+
+        // If guild member ...
         // Insert new user
         const [result] = await pool.query(
             `INSERT INTO Users 

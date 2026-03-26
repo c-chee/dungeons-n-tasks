@@ -12,6 +12,9 @@ export default function RegisterForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
+    const [accountType, setAccountType] = useState('member'); // 'member' or 'guild_master'
+    const [guildName, setGuildName] = useState('');
+
     const [loading, setLoading] = useState(false);
 
     const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -34,10 +37,12 @@ export default function RegisterForm() {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                first_name: firstName,
-                last_name: lastName,
-                email,
-                password,
+                    first_name: firstName,
+                    last_name: lastName,
+                    email,
+                    password,
+                    account_type: accountType,
+                    guild_name: guildName
                 }),
             });
 
@@ -65,6 +70,29 @@ export default function RegisterForm() {
             className='w-full h-full flex flex-col justify-center items-center p-8 gap-4'
         >
             <h2 className='arcade text-2xl font-bold'>Register</h2>
+
+            {/* Account type selection */}
+            <div className='flex gap-4'>
+                <label>
+                    <input
+                        type='radio'
+                        value='member'
+                        checked={accountType === 'member'}
+                        onChange={() => setAccountType('member')}
+                    />
+                    Member
+                </label>
+
+                <label>
+                    <input
+                        type='radio'
+                        value='guild_master'
+                        checked={accountType === 'guild_master'}
+                        onChange={() => setAccountType('guild_master')}
+                    />
+                    Guild Master
+                </label>
+            </div>
 
             {/* First name */}
             <TextField
@@ -99,6 +127,16 @@ export default function RegisterForm() {
                 onChange={setPassword}
                 required
             />
+
+            {/* Conitional - Guild name */}
+            {accountType === 'guild_master' && (
+                <TextField
+                    label="Guild Name"
+                    value={guildName}
+                    onChange={setGuildName}
+                    required
+                />
+            )}
 
             {/* Submit Button */}
             <BubbleButton type='submit' disabled={!isValid || loading}>
