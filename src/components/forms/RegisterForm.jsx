@@ -23,7 +23,8 @@ export default function RegisterForm() {
         firstName &&
         lastName &&
         isValidEmail(email) &&
-        password.length >= 8;
+        password.length >= 8 &&
+        (accountType === 'member' || (accountType === 'guild_master' && guildName));
 
     const handleSubmit = async (e) => {
         e.preventDefault();

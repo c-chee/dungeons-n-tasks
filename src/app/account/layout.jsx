@@ -2,8 +2,12 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import jwt from 'jsonwebtoken';
 
+/**
+ * Layout wrapper for account pages
+ * - Verifies JWT token
+ * - Redirects to login if missing or invalid
+ */
 export default function AccountLayout({ children }) {
-    
     const token = cookies().get('token')?.value; // Reads the token from cookies
 
     // If token does not exist, redirect user to login

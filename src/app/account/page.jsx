@@ -8,15 +8,19 @@ import { getDashboardData } from '@/lib/getDashboardData';
 import DashboardClient from './DashboardClient';
 
 export default async function DashboardPage() {
-  const authUser = getUserFromToken();
-  console.log('Auth user:', authUser);
+    // 1. Get authenticated user from token
+    const authUser = await getUserFromToken();
+    console.log('Auth user:', authUser);
 
-  if (!authUser) {
-    return <div>Unauthorized</div>;
-  }
+    // 2. Unauthorized fallback
+    if (!authUser) {
+        return <div>Unauthorized</div>;
+    }
 
-  const data = await getDashboardData(authUser.id);
-  console.log('Dashboard data:', data);
+    // 3. Fetch dashboard data
+    const data = await getDashboardData(authUser.id);
+    console.log('Dashboard data:', data);
 
-  return <DashboardClient data={data} />;
+    // 4. Render client component
+    return <DashboardClient data={data} />;
 }
