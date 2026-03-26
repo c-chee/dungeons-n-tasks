@@ -50,7 +50,7 @@ export default function RegisterForm() {
             const data = await res.json();
 
             if (!data.success) {
-                alert(data.error || 'Register failed');
+                console.error(data.error || 'Register failed');
                 setLoading(false);
                 return;
             }
@@ -59,8 +59,7 @@ export default function RegisterForm() {
             router.push('/login');
 
         } catch (err) {
-            // console.error(err);
-            alert('Something went wrong');
+            console.error(err);
             setLoading(false);
         }
     };

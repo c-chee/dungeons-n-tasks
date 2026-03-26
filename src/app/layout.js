@@ -3,6 +3,7 @@ import './globals.css';
 
 // === Components ===
 import LayoutShell from '@/components/layouts/LayoutShell';
+import { ToastProvider } from './account/components/ui/ToastProvider';
 
 // === Fonts === 
 const workSans = Work_Sans({
@@ -37,9 +38,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang='en'>
       <body className={`${workSans.className} ${shareTechMono.className} ${exo2.className} antialiased flex flex-col min-h-screen`}>
-        <LayoutShell>
-          {children}
-        </LayoutShell>
+        <ToastProvider>
+          <LayoutShell>
+            {children}
+          </LayoutShell>
+        </ToastProvider>
       </body>
     </html>
   );

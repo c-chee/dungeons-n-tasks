@@ -38,12 +38,32 @@ export async function getDashboardData(userId) {
     );
 
     let joinCode = null;
+    let guildMembers = [];
+    let guildParties = [];
+    
     if (guild) {
         const [guildRows] = await pool.query(
             `SELECT join_code FROM Guilds WHERE id = ?`,
             [guild.guild_id]
         );
         joinCode = guildRows[0]?.join_code || null;
+
+        // Get guild members
+        const [memberRows] = await pool.query(
+            `SELECT u.id, u.first_name, u.last_name, u.level, gm.role
+             FROM GuildMembers gm
+             JOIN Users u ON u.id = gm.user_id
+             WHERE gm.guild_id = ? AND gm.status = 'approved'`,
+            [guild.guild_id]
+        );
+        guildMembers = memberRows;
+
+        // Get guild parties
+        const [partyRows] = await pool.query(
+            `SELECT * FROM Parties WHERE guild_id = ?`,
+            [guild.guild_id]
+        );
+        guildParties = partyRows;
     }
 
     // 3. Party membership
@@ -95,6 +115,8 @@ export async function getDashboardData(userId) {
         guildRequests,
         partyRequests,
         pendingGuildRequests,
+        guildMembers,
+        guildParties,
         quests: quests || {
             guildQuests: [],
             partyQuests: [],

@@ -8,7 +8,7 @@ import JoinCard from './cards/JoinCard';
 import PendingRequestCard from './cards/PendingRequestCard';
 
 export default function DashboardHome({ data }) {
-    const { user, guild, party, guildRequests, partyRequests, pendingGuildRequests, quests, joinCode } = data;
+    const { user, guild, party, guildRequests, partyRequests, pendingGuildRequests, guildMembers, guildParties, quests, joinCode } = data;
     const [guildCode, setGuildCode] = useState('');
     const [partyCode, setPartyCode] = useState('');
 
@@ -42,11 +42,6 @@ export default function DashboardHome({ data }) {
             body: JSON.stringify({ userId, guildId: guild.guild_id }),
         });
         if (res.ok) window.location.reload();
-    }
-
-    // --- Reject guild request ---
-    async function rejectGuild(userId) {
-        console.log('Reject guild request', userId);
     }
 
     // --- Leave guild ---
@@ -113,9 +108,10 @@ export default function DashboardHome({ data }) {
                     guild={guild}
                     guildQuests={quests?.guildQuests || []}
                     guildRequests={guildRequests || []}
+                    guildMembers={guildMembers || []}
+                    guildParties={guildParties || []}
                     joinCode={joinCode}
                     onApprove={approveGuild}
-                    onReject={rejectGuild}
                     onRemoveMember={removeMember}
                 />
             ) : pendingGuildRequests?.length > 0 ? (

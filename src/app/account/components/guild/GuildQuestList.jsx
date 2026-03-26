@@ -17,11 +17,9 @@ export default function GuildQuestsList({ initialQuests, isMaster, guildId, memb
     const [selectedParty, setSelectedParty] = useState('');
 
     const handleCreate = async () => {
-        // Basic validation
-        if (!title.trim()) return alert('Quest title is required');
-
-        if (assignType === 'user' && !selectedUser) return alert('Select a member to assign');
-        if (assignType === 'party' && !selectedParty) return alert('Select a party to assign');
+        if (!title.trim()) return console.warn('Quest title is required');
+        if (assignType === 'user' && !selectedUser) return console.warn('Select a member to assign');
+        if (assignType === 'party' && !selectedParty) return console.warn('Select a party to assign');
 
         try {
             const res = await fetch('/api/quest/create', {
@@ -65,7 +63,6 @@ export default function GuildQuestsList({ initialQuests, isMaster, guildId, memb
 
         } catch (err) {
             console.error('Failed to create quest:', err.message);
-            alert(err.message);
         }
     };
 

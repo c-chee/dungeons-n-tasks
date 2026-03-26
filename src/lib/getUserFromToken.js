@@ -7,6 +7,8 @@ import pool from './db';
  * Includes guild info if user belongs to a guild.
  */
 export async function getUserFromToken() {
+    const cookieStore = await cookies();
+    
     const token = cookies().get('token')?.value;
 
     if (!token) return null;

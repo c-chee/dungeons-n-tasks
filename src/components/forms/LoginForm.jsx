@@ -43,15 +43,14 @@ export default function LoginForm() {
       const data = await res.json();
 
       if (!data.success) {
-        alert(data.error || 'Login failed');
+        console.error(data.error || 'Login failed');
         return;
       }
 
       router.push('/account');
 
     } catch (err) {
-      // console.error(err);
-      alert('Something went wrong');
+      console.error(err);
     }
   };
 
