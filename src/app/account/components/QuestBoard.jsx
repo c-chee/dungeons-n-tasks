@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import GuildContainer from './cards/GuildCardContainer';
+import GuildContainer from './guild/GuildCardContainer';
 import PartyContainer from './cards/PartyCardContainer';
 
 export default function QuestBoard({ data }) {
