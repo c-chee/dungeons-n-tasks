@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import QuestItem from '../QuestItem';
+import QuestItem from './QuestItem';
 import JoinCard from './JoinCard';
 import BubbleButton from '@/components/ui/BubbleButton';
 
@@ -27,7 +27,7 @@ export default function PartyContainer({ user, party, partyQuests, partyRequests
     if (!user) return null;
 
     return (
-        <div className='border rounded p-4 shadow-md space-y-4'>
+        <div className='border rounded p-4 shadow-md space-y-4 bg-white'>
             <h2 className='text-lg font-bold'>Party</h2>
 
             {/* If user has no party, show join box */}

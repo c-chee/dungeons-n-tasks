@@ -2,29 +2,20 @@ import pool from '@/lib/db';
 import { getUserFromToken } from '@/lib/getUserFromToken';
 
 export async function POST(req) {
-    const user = getUserFromToken();
+    const user = await getUserFromToken(req);
+    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { questId, targetUserId } = await req.json();
-
-    // 🔒 Ensure user is guild master of this quest
-    const [rows] = await pool.query(
-        `SELECT gm.role 
-        FROM Quests q
-        JOIN GuildMembers gm ON gm.guild_id = q.guild_id
-        WHERE q.id = ? AND gm.user_id = ?`,
-        [questId, user.id]
+    const { questId } = await req.json();
+    const [result] = await pool.query(
+        `UPDATE Quests
+         SET assigned_to = ?, status = 'assigned'
+         WHERE id = ? AND status = 'available'`,
+        [user.id, questId]
     );
 
-    if (!rows.length || rows[0].role !== 'guild_master') {
-        return Response.json({ error: 'Forbidden' }, { status: 403 });
+    if (result.affectedRows === 0) {
+        return Response.json({ error: 'Quest not available' }, { status: 400 });
     }
-
-    await pool.query(
-        `UPDATE Quests 
-        SET assigned_to = ?, status = 'assigned'
-        WHERE id = ?`,
-        [targetUserId, questId]
-    );
 
     return Response.json({ success: true });
 }

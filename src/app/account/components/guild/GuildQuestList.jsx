@@ -1,70 +1,120 @@
 'use client';
 import React, { useState } from 'react';
 import BubbleButton from '@/components/ui/BubbleButton';
+import QuestItem from '../cards/QuestItem';
 
-export default function GuildQuestList({ initialQuests, isMaster, guildId }) {
+export default function GuildQuestsList({ initialQuests, isMaster, guildId }) {
     const [quests, setQuests] = useState(initialQuests || []);
+    const [newQuestTitle, setNewQuestTitle] = useState('');
+    const [newQuestDesc, setNewQuestDesc] = useState('');
+    const [showForm, setShowForm] = useState(false);
 
+    /** Add a new quest */
     const handleAddQuest = async () => {
-        const title = prompt('Enter quest title:');
-        const description = prompt('Enter quest description:');
-        if (!title) return;
+        if (!newQuestTitle) return;
 
-        const res = await fetch('/api/quests/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                title,
-                description,
-                context_type: 'guild',
-                guild_id: guildId,
-                party_id: null,
-            }),
-        });
+        try {
+            const res = await fetch('/api/quest/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: newQuestTitle,
+                    description: newQuestDesc,
+                    context_type: 'guild',
+                }),
+            });
 
-        if (res.ok) {
-            const newQuest = await res.json();
-            setQuests([...quests, { id: Date.now(), title, description }]); // temp add
+            const data = await res.json();
+
+            console.log('API RESPONSE:', data);
+
+            if (!res.ok) throw new Error(data.error || 'Failed to create quest');
+
+            console.log('Quest created', data);
+
+            // Update UI immediately
+            setQuests([
+                ...quests,
+                {
+                    id: Date.now(),
+                    title: newQuestTitle,
+                    description: newQuestDesc
+                }
+            ]);
+
+            // Reset form
+            setNewQuestTitle('');
+            setNewQuestDesc('');
+            setShowForm(false);
+
+        } catch (err) {
+            console.error('Failed to create quest:', err.message);
         }
     };
 
+    /** Remove a quest */
     const handleRemoveQuest = async (questId) => {
-        await fetch('/api/quests/remove', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ questId }),
-        });
-        setQuests(quests.filter(q => q.id !== questId));
+        try {
+            await fetch('/api/quest/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ questId }),
+            });
+            setQuests(quests.filter(q => q.id !== questId));
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     return (
-        <div>
-            <div className='flex justify-between items-center mb-2'>
-                <h3 className='font-semibold'>Guild Quests</h3>
-                {isMaster && <BubbleButton onClick={handleAddQuest}>+ Add</BubbleButton>}
-            </div>
-            {quests.length ? (
-                <div className='flex flex-col gap-2'>
-                    {quests.map((q) => (
-                        <div key={q.id} className='relative border p-2 rounded bg-white/50 flex justify-between items-center'>
+        <div className="flex flex-col gap-2">
+            <h3 className="font-semibold flex justify-between items-center">
+                Guild Quests
+                {isMaster && <BubbleButton onClick={() => setShowForm(!showForm)}>+ Add</BubbleButton>}
+            </h3>
+
+            {/* Add Quest Form */}
+            {showForm && isMaster && (
+                <div className="flex flex-col gap-1 border p-2 rounded bg-gray-100">
+                    <input
+                        className="border p-1 rounded"
+                        placeholder="Quest Title"
+                        value={newQuestTitle}
+                        onChange={(e) => setNewQuestTitle(e.target.value)}
+                    />
+                    <textarea
+                        className="border p-1 rounded"
+                        placeholder="Quest Description"
+                        value={newQuestDesc}
+                        onChange={(e) => setNewQuestDesc(e.target.value)}
+                    />
+                    <BubbleButton onClick={handleAddQuest}>Create Quest</BubbleButton>
+                </div>
+            )}
+
+            {/* Quest List */}
+            <div className="flex flex-col gap-1">
+                {quests.length ? (
+                    quests.map(q => (
+                        <div key={q.id} className="border p-2 rounded relative bg-white/50 flex justify-between items-center">
                             <div>
-                                <p className='font-semibold'>{q.title}</p>
-                                <p className='text-sm'>{q.description}</p>
+                                <p className="font-medium">{q.title}</p>
+                                <p className="text-sm text-gray-500">{q.description}</p>
                             </div>
                             {isMaster && (
                                 <button
+                                    className="absolute top-1 right-1 text-red-500 font-bold"
                                     onClick={() => handleRemoveQuest(q.id)}
-                                    className='absolute top-1 right-1 text-red-500 font-bold'
                                 >
                                     X
                                 </button>
                             )}
                         </div>
-                    ))}
-                </div>
-            ) : (
-                <p className='text-sm text-gray-500'>No current quests</p>
-            )}
+                    ))
+                ) : (
+                    <p className="text-sm text-gray-500">No guild quests</p>
+                )}
+            </div>
         </div>
     );
 }
