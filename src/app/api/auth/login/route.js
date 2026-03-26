@@ -12,6 +12,17 @@ export async function POST(req) {
         const { email, password } = body;
 
         /**
+         * -- Basic validation --
+         * Ensure required fields exist (do not rely only on frontend)
+         */
+        if (!email || !password) {
+            return NextResponse.json({
+                success: false,
+                error: 'Missing email or password'
+            });
+        }
+
+        /**
          * -- Find user in database --
          * Query the Users table for a row with the matching email
          */
@@ -20,9 +31,12 @@ export async function POST(req) {
             [email]
         );
 
-        // If no user is found, return an error
+        // If no user is found, return a generic error (prevents user enumeration)
         if (rows.length === 0) {
-            return NextResponse.json({ success: false, error: 'User not found' });
+            return NextResponse.json({
+                success: false,
+                error: 'Invalid email or password'
+            });
         }
 
         const user = rows[0];
@@ -34,8 +48,26 @@ export async function POST(req) {
         const valid = await bcrypt.compare(password, user.password_hash);
 
         if (!valid) {
-            return NextResponse.json({ success: false, error: 'Invalid password' });
+            return NextResponse.json({
+                success: false,
+                error: 'Invalid email or password'
+            });
         }
+
+        /**
+         * -- Fetch guild membership (NEW) --
+         * Get the user's guild + role if they are in one
+         */
+        const [membership] = await pool.query(
+            `SELECT guild_id, role 
+             FROM GuildMembers 
+             WHERE user_id = ? 
+             AND status = 'approved'
+             LIMIT 1`,
+            [user.id]
+        );
+
+        const guildInfo = membership[0] || null;
 
         /**
          * -- Create JWT token --
@@ -49,12 +81,13 @@ export async function POST(req) {
 
         /**
          * -- Create response --
-         * Sends back a JSON response with the user ID
+         * Sends back a JSON response with the user ID + guild info
          */
         const response = NextResponse.json({
             success: true,
             user: {
-                id: user.id
+                id: user.id,
+                guild: guildInfo // NEW: includes { guild_id, role } or null
             }
         });
 
