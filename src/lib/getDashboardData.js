@@ -19,13 +19,23 @@ export async function getDashboardData(userId) {
 
     // 2. Guild membership
     const [guildMembership] = await pool.query(
-        `SELECT gm.guild_id, gm.role, g.name AS guild_name, gm.status
-         FROM GuildMembers gm
-         LEFT JOIN Guilds g ON g.id = gm.guild_id
-         WHERE gm.user_id = ? AND gm.status = 'approved'`,
+        `SELECT g.id AS guild_id, g.name, g.join_code, gm.role, gm.status
+        FROM GuildMembers gm
+        JOIN Guilds g ON g.id = gm.guild_id
+        WHERE gm.user_id = ? AND gm.status = 'approved'`,
         [userId]
     );
+
     const guild = guildMembership[0] || null;
+
+    let joinCode = null;
+    if (guild) {
+        const [guildRows] = await pool.query(
+            `SELECT join_code FROM Guilds WHERE id = ?`,
+            [guild.guild_id]
+        );
+        joinCode = guildRows[0]?.join_code || null;
+    }
 
     // 3. Party membership
     const [partyMembership] = await pool.query(
@@ -40,10 +50,10 @@ export async function getDashboardData(userId) {
     let guildRequests = [];
     if (guild && guild.role === 'guild_master') {
         const [rows] = await pool.query(
-            `SELECT gm.user_id, u.username
-             FROM GuildMembers gm
-             JOIN Users u ON u.id = gm.user_id
-             WHERE gm.guild_id = ? AND gm.status = 'pending'`,
+            `SELECT gm.user_id, CONCAT(u.first_name, ' ', u.last_name) AS username
+            FROM GuildMembers gm
+            JOIN Users u ON u.id = gm.user_id
+            WHERE gm.guild_id = ? AND gm.status = 'pending'`,
             [guild.guild_id]
         );
         guildRequests = rows;
@@ -53,10 +63,10 @@ export async function getDashboardData(userId) {
     let partyRequests = [];
     if (party && party.role === 'leader') {
         const [rows] = await pool.query(
-            `SELECT pm.user_id, u.username
-             FROM PartyMembers pm
-             JOIN Users u ON u.id = pm.user_id
-             WHERE pm.party_id = ? AND pm.status = 'pending'`,
+            `SELECT pm.user_id, CONCAT(u.first_name, ' ', u.last_name) AS username
+            FROM PartyMembers pm
+            JOIN Users u ON u.id = pm.user_id
+            WHERE pm.party_id = ? AND pm.status = 'pending'`,
             [party.party_id]
         );
         partyRequests = rows;
@@ -81,5 +91,6 @@ export async function getDashboardData(userId) {
             publicQuests: [],
             assignedQuests: [],
         },
+        joinCode,
     }));
 }

@@ -1,37 +1,72 @@
 'use client';
 import { useState } from 'react';
 import StatsCard from './cards/StatsCard';
+import CurrentMissionsCard from './cards/CurrentMissionsCard';
+import GuildContainer from './cards/GuildCardContainer';
+import PartyContainer from './cards/PartyCardContainer';
 import JoinCard from './cards/JoinCard';
 import RequestsCard from './cards/RequestCard';
-import CurrentMissionsCard from './cards/CurrentMissionsCard';
-import GuildMasterPanel from './cards/GuildMasterPanel';
 
 export default function DashboardHome({ data }) {
-    const { user, guild, party, guildRequests, partyRequests } = data;
+    const { user, guild, party, guildRequests, partyRequests, quests } = data;
     const [guildCode, setGuildCode] = useState('');
     const [partyCode, setPartyCode] = useState('');
 
-    /**
-     * Placeholder functions for joining guilds/parties
-     * You should replace these with real API calls
-     */
-    async function joinGuild() { /* ... */ }
-    async function joinParty() { /* ... */ }
-    async function approveGuild(userId) { /* ... */ }
-    async function approveParty(userId) { /* ... */ }
+    async function joinGuild() {
+        if (!guildCode) return;
+        await fetch('/api/guild/join', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: guildCode }),
+        });
+        window.location.reload();
+    }
+
+    async function joinParty() {
+        if (!partyCode) return;
+        await fetch('/api/party/join', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: partyCode }),
+        });
+        window.location.reload();
+    }
+
+    async function approveGuild(userId) {
+        console.log('Approve guild request', userId);
+    }
+
+    async function approveParty(userId) {
+        console.log('Approve party request', userId);
+    }
 
     return (
         <div
             className='flex flex-col gap-6 min-h-screen max-w-3xl p-6
-                        bg-[url("/images/home-bg.png")] bg-cover bg-center bg-no-repeat'
+                       bg-[url("/images/home-bg.png")] bg-cover bg-center bg-no-repeat'
         >
             {/* Stats */}
             <StatsCard coins={user.coins} level={user.level} />
 
             {/* Current Missions */}
-            <CurrentMissionsCard quests={data.quests?.assignedQuests || []} />
+            <CurrentMissionsCard quests={quests?.assignedQuests || []} />
 
-            {/* --- Join Boxes for non-members --- */}
+            {/* Guild Panel */}
+            <GuildContainer
+                guild={guild}
+                guildQuests={quests?.guildQuests || []}
+                guildRequests={guildRequests || []}
+                user={user}
+                joinCode={guild?.join_code || ''} // <-- pass the join code
+            />
+
+            {/* Party Panel */}
+            <PartyContainer
+                party={party}
+                partyQuests={quests?.partyQuests || []}
+            />
+
+            {/* Join Boxes for users not in guild/party (optional) */}
             {!guild && (
                 <JoinCard
                     type='guild'
@@ -49,17 +84,17 @@ export default function DashboardHome({ data }) {
                 />
             )}
 
-            {/* --- Guild Master Panel --- */}
-            {guild?.role === 'guild_master' && (
-                <GuildMasterPanel
-                    guildName={guild.guild_name}
+            {/* Requests (redundant if inside guild/party container) */}
+            {guild?.role === 'guild_master' && guildRequests?.length > 0 && (
+                <RequestsCard
+                    title='Guild Join Requests'
                     requests={guildRequests}
                     onApprove={approveGuild}
+                    variant='blueDark'
                 />
             )}
 
-            {/* --- Party Leader Panel --- */}
-            {party?.role === 'leader' && (
+            {party?.role === 'leader' && partyRequests?.length > 0 && (
                 <RequestsCard
                     title='Party Join Requests'
                     requests={partyRequests}
@@ -67,16 +102,6 @@ export default function DashboardHome({ data }) {
                     variant='greenDark'
                 />
             )}
-
-            {/* --- Regular Member Notes --- */}
-            {guild?.role === 'member' && (
-                <div className='p-4 bg-white/50 rounded-md border'>
-                    <h3 className='font-bold'>Guild Info</h3>
-                    <p>You are a member of <strong>{guild.guild_name}</strong>.</p>
-                    <p>Check with your guild master for tasks and updates.</p>
-                </div>
-            )}
-
         </div>
     );
 }
