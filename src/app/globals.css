@@ -21,6 +21,34 @@
   --dark-red: #872522;
 
   /* ---------------------
+      Quest Status Colors
+  ------------------------ */
+  --status-available: #3b82f6;
+  --status-available-bg: #dbeafe;
+  --status-in-progress: #eab308;
+  --status-in-progress-bg: #fef9c3;
+  --status-blocked: #ef4444;
+  --status-blocked-bg: #fee2e2;
+  --status-pending-review: #a855f7;
+  --status-pending-review-bg: #f3e8ff;
+  --status-completed: #22c55e;
+  --status-completed-bg: #dcfce7;
+
+  /* ---------------------
+      Icon Button Colors
+  ------------------------ */
+  --icon-red: #ef4444;
+  --icon-red-hover: #fee2e2;
+  --icon-orange: #f97316;
+  --icon-orange-hover: #ffedd5;
+  --icon-blue: #3b82f6;
+  --icon-blue-hover: #dbeafe;
+  --icon-green: #22c55e;
+  --icon-green-hover: #dcfce7;
+  --icon-gray: #6b7280;
+  --icon-gray-hover: #f3f4f6;
+
+  /* ---------------------
       Variables
   ------------------------ */
   --font-arcade: 'Arcade', sans-serif;

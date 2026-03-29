@@ -1,12 +1,15 @@
 import Card from './Card';
 import BubbleButton from '@/components/ui/BubbleButton';
+import LevelBadge from '../ui/LevelBadge';
 
-export default function StatsCard({ coins, level, guild, onLeave }) {
+export default function StatsCard({ coins, level, level_xp, guild, onLeave }) {
     return (
         <Card variant='default'>
             <h2 className='font-bold text-lg'>Your Stats</h2>
-            <p>Coins: {coins}</p>
-            <p>Level: {level}</p>
+            <div className='flex items-center gap-4'>
+                <p>Coins: {coins}</p>
+                <LevelBadge level={level} level_xp={level_xp} />
+            </div>
 
             {guild && (
                 <div className="mt-4 p-2 border rounded bg-gray-50">

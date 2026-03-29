@@ -5,7 +5,7 @@ import GuildQuestsList from './GuildQuestList';
 import PartyContainer from '../cards/PartyCardContainer';
 import { useToast } from '../ui/ToastProvider';
 
-export default function GuildContainer({ guild, guildQuests, guildRequests, guildMembers, guildParties, user, onRemoveMember, onRefresh }) {
+export default function GuildContainer({ guild, guildQuests, guildRequests, guildMembers, guildParties, user, onRemoveMember, onRefresh, pendingReviewQuests = [], onApproveComplete, onRevise }) {
     const { showToast } = useToast();
     const isMaster = guild?.role === 'guild_master';
     const [joinCode, setJoinCode] = useState(guild?.join_code || '');
@@ -163,11 +163,14 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
                 {/* Guild Quests */}
                 <GuildQuestsList
                     initialQuests={guildQuests}
+                    pendingReviewQuests={pendingReviewQuests}
                     guildId={guild.guild_id}
                     isMaster={isMaster}
                     members={guildMembers}
                     parties={guildParties}
                     onRefresh={onRefresh}
+                    onApproveComplete={onApproveComplete}
+                    onRevise={onRevise}
                 />
 
                 {/* Guild Parties */}
