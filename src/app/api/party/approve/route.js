@@ -2,7 +2,7 @@ import pool from '@/lib/db';
 import { getUserFromToken } from '@/lib/getUserFromToken';
 
 export async function POST(req) {
-    const user = getUserFromToken();
+    const user = await getUserFromToken();
 
     if (!user) {
         return Response.json({ error: 'Unauthorized' }, { status: 401 });

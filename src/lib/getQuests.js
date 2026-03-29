@@ -8,23 +8,23 @@ export async function getQuests(userId, guildId, partyId) {
 
     if (guildId) {
         const [rows] = await pool.query(
-        `SELECT * FROM Quests WHERE guild_id = ?`,
-        [guildId]
+            `SELECT * FROM Quests WHERE guild_id = ? AND context_type = 'guild' AND status IN ('available', 'assigned')`,
+            [guildId]
         );
         guildQuests = rows;
     }
 
     if (partyId) {
         const [rows] = await pool.query(
-        `SELECT * FROM Quests WHERE party_id = ?`,
-        [partyId]
+            `SELECT * FROM Quests WHERE party_id = ? AND context_type = 'party' AND status IN ('available', 'assigned')`,
+            [partyId]
         );
         partyQuests = rows;
     }
 
     const [assignedRows] = await pool.query(
-    `SELECT * FROM Quests WHERE assigned_to = ?`,
-    [userId]
+        `SELECT * FROM Quests WHERE assigned_to = ? AND status = 'assigned'`,
+        [userId]
     );
     const assignedQuests = assignedRows;
 

@@ -12,7 +12,7 @@ function generateJoinCode() {
 
 export async function POST(req) {
     try {
-        const user = await getUserFromToken(req);
+        const user = await getUserFromToken();
         if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
         const { guildId } = await req.json();

@@ -12,7 +12,7 @@ export async function getDashboardData(userId) {
 
     // 1. Get user
     const [users] = await pool.query(
-        'SELECT id, coins, level FROM Users WHERE id = ?',
+        'SELECT id, first_name, last_name, coins, level, level_xp FROM Users WHERE id = ?',
         [userId]
     );
     const user = users[0];

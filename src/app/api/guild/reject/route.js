@@ -18,11 +18,15 @@ export async function POST(req) {
             return Response.json({ error: 'Forbidden' }, { status: 403 });
         }
 
-        await pool.query(
+        const [result] = await pool.query(
             `DELETE FROM GuildMembers 
-             WHERE user_id = ? AND guild_id = ? AND status = 'pending'`,
+            WHERE user_id = ? AND guild_id = ? AND status = 'pending'`,
             [userId, guildId]
         );
+
+        if (result.affectedRows === 0) {
+            return Response.json({ error: 'Request not found or already handled' }, { status: 400 });
+        }
 
         return Response.json({ success: true });
 

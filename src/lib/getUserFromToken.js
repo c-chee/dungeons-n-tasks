@@ -8,8 +8,8 @@ import pool from './db';
  */
 export async function getUserFromToken() {
     const cookieStore = await cookies();
-    
-    const token = cookies().get('token')?.value;
+
+    const token = cookieStore.get('token')?.value;
 
     if (!token) return null;
 
@@ -29,7 +29,7 @@ export async function getUserFromToken() {
 
         return {
             id: decoded.id,
-            guild, // { guild_id, role, guild_name } or null
+            guild,
         };
     } catch (err) {
         console.error('JWT verification failed:', err);

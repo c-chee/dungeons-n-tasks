@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import BubbleButton from '@/components/ui/BubbleButton';
 import Modal from '../ui/Modal';
 
-export default function GuildQuestsList({ initialQuests, isMaster, guildId, members = [], parties = [] }) {
+export default function GuildQuestsList({ initialQuests, isMaster, guildId, members = [], parties = [], onRefresh }) {
     const [quests, setQuests] = useState(initialQuests || []);
     const [showModal, setShowModal] = useState(false);
 
@@ -12,9 +12,14 @@ export default function GuildQuestsList({ initialQuests, isMaster, guildId, memb
     const [rewardCoins, setRewardCoins] = useState(10);
     const [rewardXp, setRewardXp] = useState(10);
 
-    const [assignType, setAssignType] = useState('none'); // none | user | party
+    const [assignType, setAssignType] = useState('none');
     const [selectedUser, setSelectedUser] = useState('');
     const [selectedParty, setSelectedParty] = useState('');
+
+    const getMemberName = (userId) => {
+        const member = members.find(m => m.id === userId);
+        return member ? `${member.first_name} ${member.last_name}` : null;
+    };
 
     const handleCreate = async () => {
         if (!title.trim()) return console.warn('Quest title is required');
@@ -29,7 +34,7 @@ export default function GuildQuestsList({ initialQuests, isMaster, guildId, memb
                     title,
                     description: desc,
                     context_type: assignType === 'party' ? 'party' : 'guild',
-                    guild_id: assignType === 'party' ? null : guildId, // always send guildId for guild quests
+                    guild_id: assignType === 'party' ? null : guildId,
                     party_id: assignType === 'party' ? selectedParty : null,
                     reward_coins: rewardCoins,
                     reward_xp: rewardXp,
@@ -41,17 +46,6 @@ export default function GuildQuestsList({ initialQuests, isMaster, guildId, memb
 
             if (!res.ok) throw new Error(data.error || 'Failed to create quest');
 
-            // Add quest locally
-            setQuests([...quests, {
-                id: data.id,
-                title,
-                description: desc,
-                reward_coins: rewardCoins,
-                reward_xp: rewardXp,
-                assigned_to: assignType === 'user' ? selectedUser : null,
-            }]);
-
-            // Reset form
             setShowModal(false);
             setTitle('');
             setDesc('');
@@ -61,10 +55,37 @@ export default function GuildQuestsList({ initialQuests, isMaster, guildId, memb
             setSelectedUser('');
             setSelectedParty('');
 
+            if (onRefresh) onRefresh();
+
         } catch (err) {
-            console.error('Failed to create quest:', err.message);
+            console.log('Failed to create quest:', err.message);
         }
     };
+
+    const handleComplete = async (questId) => {
+        try {
+            const res = await fetch('/api/quest/complete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ questId }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                console.log(data.error || 'Failed to complete quest');
+                return;
+            }
+
+            if (onRefresh) onRefresh();
+
+        } catch (err) {
+            console.log('Failed to complete quest:', err.message);
+        }
+    };
+
+    const activeQuests = quests.filter(q => q.status !== 'completed');
+    const completedQuests = quests.filter(q => q.status === 'completed');
 
     return (
         <div>
@@ -73,25 +94,56 @@ export default function GuildQuestsList({ initialQuests, isMaster, guildId, memb
                 {isMaster && <BubbleButton onClick={() => setShowModal(true)}>+ Add</BubbleButton>}
             </div>
 
-            {/* Quest List */}
+            {/* Active Quests */}
             <div className='mt-2 flex flex-col gap-2'>
-                {quests.length ? quests.map(q => (
-                    <div key={q.id} className='border p-2 rounded relative'>
-                        <p className='font-medium'>{q.title}</p>
-                        <p className='text-sm'>{q.description}</p>
-                        <p className='text-xs text-gray-500'>
-                            Coins: {q.reward_coins} • XP: {q.reward_xp} 
-                            {q.assigned_to && ` • Assigned to ID: ${q.assigned_to}`}
-                        </p>
-                    </div>
-                )) : <p className='text-sm text-gray-500'>No quests available</p>}
+                {activeQuests.length ? activeQuests.map(q => {
+                    const assigneeName = getMemberName(q.assigned_to);
+                    return (
+                        <div key={q.id} className='border p-2 rounded relative'>
+                            <div className='flex justify-between items-start'>
+                                <div className='flex-1'>
+                                    <p className='font-medium'>{q.title}</p>
+                                    <p className='text-sm'>{q.description}</p>
+                                    <p className='text-xs text-gray-500'>
+                                        Coins: {q.reward_coins} • XP: {q.reward_xp}
+                                        {assigneeName && ` • Assigned to: ${assigneeName}`}
+                                        {!q.assigned_to && q.status === 'available' && ' • Unassigned'}
+                                    </p>
+                                </div>
+                                {isMaster && q.status === 'assigned' && (
+                                    <BubbleButton 
+                                        onClick={() => handleComplete(q.id)}
+                                        className='ml-2 bg-green-500 hover:bg-green-600 text-white text-xs'
+                                    >
+                                        Complete
+                                    </BubbleButton>
+                                )}
+                            </div>
+                        </div>
+                    );
+                }) : <p className='text-sm text-gray-500'>No active quests</p>}
             </div>
 
-            {/* Modal */}
+            {/* Completed Quests */}
+            {completedQuests.length > 0 && (
+                <div className='mt-4'>
+                    <h4 className='text-sm font-medium text-gray-500'>Completed</h4>
+                    <div className='flex flex-col gap-1 mt-1'>
+                        {completedQuests.map(q => (
+                            <div key={q.id} className='border p-2 rounded bg-gray-50 relative opacity-60'>
+                                <p className='font-medium line-through'>{q.title}</p>
+                                <p className='text-xs text-gray-500'>
+                                    Coins: {q.reward_coins} • XP: {q.reward_xp}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             <Modal isOpen={showModal} onClose={() => setShowModal(false)}>
                 <h2 className='font-bold text-lg mb-2'>Create Quest</h2>
 
-                {/* Title */}
                 <label className='text-sm font-medium mb-1 block'>Quest Title</label>
                 <input
                     placeholder='Title'
@@ -100,7 +152,6 @@ export default function GuildQuestsList({ initialQuests, isMaster, guildId, memb
                     onChange={(e) => setTitle(e.target.value)}
                 />
 
-                {/* Description */}
                 <label className='text-sm font-medium mb-1 block'>Description</label>
                 <textarea
                     placeholder='Description'
@@ -109,7 +160,6 @@ export default function GuildQuestsList({ initialQuests, isMaster, guildId, memb
                     onChange={(e) => setDesc(e.target.value)}
                 />
 
-                {/* Rewards */}
                 <div className='flex gap-2 mb-2'>
                     <div className='flex flex-col w-1/2'>
                         <label className='text-sm font-medium mb-1'>Reward Coins</label>
@@ -131,7 +181,6 @@ export default function GuildQuestsList({ initialQuests, isMaster, guildId, memb
                     </div>
                 </div>
 
-                {/* Assign Type */}
                 <label className='text-sm font-medium mb-1 block'>Assign Quest</label>
                 <select
                     className='border p-1 w-full mb-2'
@@ -143,7 +192,6 @@ export default function GuildQuestsList({ initialQuests, isMaster, guildId, memb
                     <option value='party'>Assign to Party</option>
                 </select>
 
-                {/* Assign Member */}
                 {assignType === 'user' && (
                     <div className='mb-2'>
                         <label className='text-sm font-medium mb-1 block'>Select Member</label>
@@ -166,7 +214,6 @@ export default function GuildQuestsList({ initialQuests, isMaster, guildId, memb
                     </div>
                 )}
 
-                {/* Assign Party */}
                 {assignType === 'party' && (
                     <div className='mb-2'>
                         <label className='text-sm font-medium mb-1 block'>Select Party</label>

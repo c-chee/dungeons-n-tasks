@@ -5,13 +5,9 @@ import GuildQuestsList from './GuildQuestList';
 import PartyContainer from '../cards/PartyCardContainer';
 import { useToast } from '../ui/ToastProvider';
 
-export default function GuildContainer({ guild, guildQuests, guildRequests, guildMembers, guildParties, user, onRemoveMember }) {
+export default function GuildContainer({ guild, guildQuests, guildRequests, guildMembers, guildParties, user, onRemoveMember, onRefresh }) {
     const { showToast } = useToast();
     const isMaster = guild?.role === 'guild_master';
-    const [members, setMembers] = useState(guildMembers || []);
-    const [pendingRequests, setPendingRequests] = useState(guildRequests || []);
-    const [quests, setQuests] = useState(guildQuests || []);
-    const [parties, setParties] = useState(guildParties || []);
     const [joinCode, setJoinCode] = useState(guild?.join_code || '');
     
     const [newPartyName, setNewPartyName] = useState('');
@@ -24,15 +20,15 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
             const res = await fetch('/api/parties/create', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newPartyName, guild_id: guild.id })
+                body: JSON.stringify({ name: newPartyName, guild_id: guild.guild_id })
             });
             if (!res.ok) throw new Error('Failed to create party');
             const data = await res.json();
-            setParties([...parties, { id: Date.now(), name: newPartyName, xp_current: 0, xp_goal: 100 }]);
             setNewPartyName('');
             setShowPartyForm(false);
+            if (onRefresh) onRefresh();
         } catch (err) {
-            console.error(err);
+            console.log('Failed to create party:', err.message);
         }
     };
 
@@ -42,24 +38,17 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
             const res = await fetch('/api/guild/approve', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, guildId: guild.id })
+                body: JSON.stringify({ userId, guildId: guild.guild_id })
             });
-            if (!res.ok) throw new Error('Failed to approve user');
-
-            const request = pendingRequests.find(r => r.user_id === userId);
-            setPendingRequests(pendingRequests.filter(r => r.user_id !== userId));
-
-            if (request) {
-                const [firstName, ...lastNameParts] = request.username.split(' ');
-                setMembers([...members, {
-                    id: userId,
-                    first_name: firstName,
-                    last_name: lastNameParts.join(' '),
-                    level: 1
-                }]);
+            
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to approve user');
             }
+
+            if (onRefresh) onRefresh();
         } catch (err) {
-            console.error(err);
+            console.log('Failed to approve user:', err.message);
         }
     };
 
@@ -69,12 +58,17 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
             const res = await fetch('/api/guild/reject', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ userId, guildId: guild.id })
+                body: JSON.stringify({ userId, guildId: guild.guild_id })
             });
-            if (!res.ok) throw new Error('Failed to reject request');
-            setPendingRequests(pendingRequests.filter(r => r.user_id !== userId));
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to reject request');
+            }
+            
+            if (onRefresh) onRefresh();
         } catch (err) {
-            console.error(err);
+            console.log('Failed to reject request:', err.message);
         }
     };
 
@@ -84,13 +78,13 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
             const res = await fetch('/api/guild/refresh-code', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ guildId: guild.id })
+                body: JSON.stringify({ guildId: guild.guild_id })
             });
             if (!res.ok) throw new Error('Failed to refresh code');
             const data = await res.json();
             setJoinCode(data.joinCode);
         } catch (err) {
-            console.error(err);
+            console.log('Failed to refresh code:', err.message);
         }
     };
 
@@ -100,8 +94,8 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
             {/* Members List */}
             <div className='flex-1 border p-2 rounded max-h-[500px] overflow-y-auto'>
                 <h3 className='font-semibold mb-2'>Members</h3>
-                {members.length ? (
-                    members.map(m => (
+                {guildMembers.length ? (
+                    guildMembers.map(m => (
                         <div key={m.id} className='flex items-center gap-2 mb-2'>
                             <div className='w-8 h-8 rounded-full bg-[var(--light-green)] flex items-center justify-center text-sm font-bold'>
                                 {m.first_name?.[0]}{m.last_name?.[0]}
@@ -134,10 +128,10 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
                     <p className='text-sm text-gray-500'>No members yet</p>
                 )}
 
-                {isMaster && pendingRequests.length > 0 && (
+                {isMaster && guildRequests.length > 0 && (
                     <div className='mt-4'>
                         <h4 className='font-semibold mb-2'>Pending Requests</h4>
-                        {pendingRequests.map(r => (
+                        {guildRequests.map(r => (
                             <div key={r.user_id} className='flex justify-between items-center border p-1 rounded mb-1'>
                                 <span>{r.username}</span>
                                 <div className='flex gap-1'>
@@ -157,27 +151,23 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
                 {isMaster && (
                     <div className='flex items-center justify-between mb-2 p-2 border rounded bg-gray-50'>
                         <span className='font-mono text-lg font-bold'>{joinCode}</span>
-                        <div className='flex gap-2'>
-                            <BubbleButton onClick={() => {
-                                navigator.clipboard.writeText(joinCode);
-                                showToast('Join code copied!', 'success');
-                            }}>
-                                Copy
-                            </BubbleButton>
-                            <BubbleButton onClick={handleRefreshCode} className='bg-blue-500 hover:bg-blue-600'>
-                                Refresh
-                            </BubbleButton>
-                        </div>
+                        <BubbleButton onClick={() => {
+                            navigator.clipboard.writeText(joinCode);
+                            showToast('Join code copied!', 'success');
+                        }}>
+                            Copy
+                        </BubbleButton>
                     </div>
                 )}
 
                 {/* Guild Quests */}
                 <GuildQuestsList
                     initialQuests={guildQuests}
-                    guildId={guild.id}
+                    guildId={guild.guild_id}
                     isMaster={isMaster}
-                    members={members}
-                    parties={parties}
+                    members={guildMembers}
+                    parties={guildParties}
+                    onRefresh={onRefresh}
                 />
 
                 {/* Guild Parties */}
@@ -200,8 +190,8 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
                     )}
 
                     <div className='mt-2 flex flex-col gap-2'>
-                        {parties.length ? (
-                            parties.map(p => (
+                        {guildParties.length ? (
+                            guildParties.map(p => (
                                 <div key={p.id} className='border p-2 rounded'>
                                     <p className='font-medium'>{p.name}</p>
                                     <p className='text-sm text-gray-500'>XP: {p.xp_current}/{p.xp_goal}</p>

@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import StatsCard from './cards/StatsCard';
 import CurrentMissionsCard from './cards/CurrentMissionsCard';
 import GuildContainer from './guild/GuildCardContainer';
@@ -8,19 +8,41 @@ import JoinCard from './cards/JoinCard';
 import PendingRequestCard from './cards/PendingRequestCard';
 
 export default function DashboardHome({ data }) {
-    const { user, guild, party, guildRequests, partyRequests, pendingGuildRequests, guildMembers, guildParties, quests, joinCode } = data;
+    const [dashboardData, setDashboardData] = useState(data);
+    const [refreshKey, setRefreshKey] = useState(0);
     const [guildCode, setGuildCode] = useState('');
     const [partyCode, setPartyCode] = useState('');
+
+    const { user, guild, party, guildRequests, partyRequests, pendingGuildRequests, guildMembers, guildParties, quests, joinCode } = dashboardData;
+
+    useEffect(() => {
+        async function refreshData() {
+            try {
+                const res = await fetch('/api/dashboard');
+                if (res.ok) {
+                    const fresh = await res.json();
+                    setDashboardData(fresh);
+                }
+            } catch (err) {
+                console.log('Failed to refresh data:', err);
+            }
+        }
+        refreshData();
+    }, [refreshKey]);
+
+    const handleRefresh = () => {
+        setRefreshKey(k => k + 1);
+    };
 
     // --- Join guild ---
     async function joinGuild() {
         if (!guildCode) return;
-        await fetch('/api/guild/join', {
+        const res = await fetch('/api/guild/join', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ joinCode: guildCode }),
         });
-        window.location.reload();
+        if (res.ok) handleRefresh();
     }
 
     // --- Join party ---
@@ -34,16 +56,6 @@ export default function DashboardHome({ data }) {
         window.location.reload();
     }
 
-    // --- Approve guild requests ---
-    async function approveGuild(userId) {
-        const res = await fetch('/api/guild/approve', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, guildId: guild.guild_id }),
-        });
-        if (res.ok) window.location.reload();
-    }
-
     // --- Leave guild ---
     async function leaveGuild() {
         if (!guild) return;
@@ -52,7 +64,7 @@ export default function DashboardHome({ data }) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ guildId: guild.guild_id }),
         });
-        if (res.ok) window.location.reload();
+        if (res.ok) handleRefresh();
     }
 
     // --- Cancel pending guild request ---
@@ -62,7 +74,7 @@ export default function DashboardHome({ data }) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ guildId }),
         });
-        if (res.ok) window.location.reload();
+        if (res.ok) handleRefresh();
     }
 
     // --- Remove member (guild master only) ---
@@ -73,7 +85,7 @@ export default function DashboardHome({ data }) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ guildId: guild.guild_id, memberId }),
         });
-        if (res.ok) window.location.reload();
+        if (res.ok) handleRefresh();
     }
 
     // --- Approve party requests ---
@@ -92,8 +104,8 @@ export default function DashboardHome({ data }) {
 
             {/* Stats */}
             <StatsCard 
-                coins={user.coins} 
-                level={user.level} 
+                coins={user?.coins} 
+                level={user?.level} 
                 guild={guild}
                 onLeave={leaveGuild}
             />
@@ -104,6 +116,7 @@ export default function DashboardHome({ data }) {
             {/* Guild Panel */}
             {guild ? (
                 <GuildContainer
+                    key={refreshKey}
                     user={user}
                     guild={guild}
                     guildQuests={quests?.guildQuests || []}
@@ -111,8 +124,8 @@ export default function DashboardHome({ data }) {
                     guildMembers={guildMembers || []}
                     guildParties={guildParties || []}
                     joinCode={joinCode}
-                    onApprove={approveGuild}
                     onRemoveMember={removeMember}
+                    onRefresh={handleRefresh}
                 />
             ) : pendingGuildRequests?.length > 0 ? (
                 <PendingRequestCard 

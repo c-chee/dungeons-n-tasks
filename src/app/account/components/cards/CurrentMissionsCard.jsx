@@ -21,7 +21,7 @@ export default function CurrentMissionsCard({ quests }) {
             <div>
               <p className='font-semibold'>{quest.title}</p>
               <p className='text-sm'>{quest.description}</p>
-              <p className='text-xs text-gray-600'>Reward: {quest.reward_coins} coins</p>
+              <p className='text-xs text-gray-600'>Reward: {quest.reward_coins} coins • {quest.reward_xp} XP</p>
             </div>
             {/* Optionally add a button to abandon or mark complete */}
             {quest.status === 'assigned' && (
