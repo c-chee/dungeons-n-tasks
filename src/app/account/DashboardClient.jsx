@@ -10,8 +10,20 @@ import Toolbar from './components/Toolbar';
 
 export default function DashboardClient({ data }) {
     const [view, setView] = useState('home');
+    const [dashboardData, setDashboardData] = useState(data);
 
-    // Define background images per view
+    const refreshDashboard = async () => {
+        try {
+            const res = await fetch('/api/dashboard');
+            if (res.ok) {
+                const fresh = await res.json();
+                setDashboardData(fresh);
+            }
+        } catch (err) {
+            console.log('Failed to refresh:', err);
+        }
+    };
+
     const bgImages = {
         home: '/images/guild.png',
         quests: '/images/quests-bg.png',
@@ -25,8 +37,8 @@ export default function DashboardClient({ data }) {
         >
             {/* Main content */}
             <div className='flex-1 w-full p-6 mt-[4em]'>
-                {view === 'home' && <DashboardHome data={data} />}
-                {view === 'quests' && <QuestBoard data={data} />}
+                {view === 'home' && <DashboardHome data={dashboardData} />}
+                {view === 'quests' && <QuestBoard data={dashboardData} onRefresh={refreshDashboard} />}
                 {view === 'shop' && <div>Shop coming soon</div>}
             </div>
 

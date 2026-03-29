@@ -122,6 +122,9 @@ export async function getDashboardData(userId) {
             partyQuests: [],
             publicQuests: [],
             assignedQuests: [],
+            availableQuests: [],
+            pickupRequests: [],
+            userPendingRequests: [],
         },
         joinCode,
     }));
