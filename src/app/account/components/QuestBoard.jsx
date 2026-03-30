@@ -5,27 +5,7 @@ import Card from './cards/Card';
 import BubbleButton from '@/components/ui/BubbleButton';
 import Modal from './ui/Modal';
 import { useToast } from './ui/ToastProvider';
-
-const UserIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-    </svg>
-);
-
-const WaitingIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
-    </svg>
-);
-
-const TrashIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <polyline points="3 6 5 6 21 6"/>
-        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-    </svg>
-);
+import { UserIcon, WaitingIcon, TrashIcon } from './ui/Icons';
 
 export default function QuestBoard({ data, onRefresh, onApproveComplete, onRevise }) {
     const { showToast } = useToast();
