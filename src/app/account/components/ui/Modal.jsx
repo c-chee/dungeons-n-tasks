@@ -12,8 +12,6 @@ export default function Modal({ isOpen, onClose, children }) {
                 className='bg-white p-4 rounded shadow-lg w-full max-w-md relative'
                 onClick={(e) => e.stopPropagation()}
             >
-                
-                {/* Close button */}
                 <button
                     onClick={onClose}
                     className='absolute top-2 right-2 text-red-500 font-bold'
