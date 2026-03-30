@@ -316,7 +316,10 @@ export default function QuestBoard({ data, onRefresh, onApproveComplete, onRevis
     return (
         <div className='space-y-6'>
             <Card variant='default'>
-                <h2 className='font-bold text-lg mb-4'>Quest Board</h2>
+                <div className='text-center mb-4'>
+                    <p className='arcade text-sm text-[var(--dark-brown)] mb-[2px]'>{guild?.name || 'Guild'}</p>
+                    <h2 className='arcade outline-text-brown text-[var(--yellow)] text-xl font-bold'>Guild Quest</h2>
+                </div>
 
                 {activeQuests.length === 0 && completedQuests.length === 0 && pendingReviewQuests.length === 0 ? (
                     <p className='text-sm text-gray-500'>No quests available.</p>
