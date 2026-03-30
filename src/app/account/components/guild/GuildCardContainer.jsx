@@ -260,8 +260,8 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
                 )}
 
                 {!isMaster && userPendingRequests.length > 0 && (
-                    <Card variant='default'>
-                        <h2 className='font-bold text-lg mb-4'>My Requests</h2>
+                    <Card variant='orange'>
+                        <h2 className='font-semibold text-orange-600 text-lg mb-4'>My Requests</h2>
                         <div className='space-y-2'>
                             {userPendingRequests.map(request => {
                                 const quest = [...guildQuests, ...partyQuests].find(q => q.id === request.quest_id);
@@ -270,7 +270,7 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
                                         <span className='text-sm'>{quest?.title || 'Unknown Quest'}</span>
                                         <button 
                                             onClick={() => handleCancelPickup(request.quest_id)}
-                                            className='text-xs text-red-500 hover:text-red-700 underline'
+                                            className='text-xs cursor-pointer text-red-500 hover:text-red-700 underline'
                                         >
                                             Cancel
                                         </button>
