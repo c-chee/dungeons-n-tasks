@@ -6,7 +6,7 @@ export default function About() {
             <div className='flex flex-col lg:flex-row items-center justify-center h-full px-6 lg:px-12 py-20 -mt-[5em] lg:-mt-[9em] gap-5 max-w-7xl mx-auto'>
                 
                 <div className='w-full lg:w-1/2 mb-8 lg:mb-0 text-center lg:text-left order-1 lg:order-2'>
-                    <h2 className='arcade text-2xl lg:text-3xl font-bold text-[var(--dark-brown)] outline-text leading-relaxed mb-4'>
+                    <h2 className='arcade outline-text-brown text-2xl lg:text-3xl font-bold text-[var(--yellow)] outline-text leading-relaxed mb-4'>
                         Turn Tasks into Adventures
                     </h2>
                     <p className='text-white text-lg leading-relaxed'>
