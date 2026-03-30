@@ -43,6 +43,9 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
     const [showRevisionViewModal, setShowRevisionViewModal] = useState(false);
     const [currentRevisionQuest, setCurrentRevisionQuest] = useState(null);
 
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [questToDelete, setQuestToDelete] = useState(null);
+
     const toggleExpand = (questId) => {
         setExpandedQuests(prev => ({
             ...prev,
@@ -185,14 +188,17 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
         }
     };
 
-    const handleDelete = async () => {
-        if (!confirm('Delete this quest? This cannot be undone.')) return;
+    const handleDelete = () => {
+        setQuestToDelete(editingQuest);
+        setShowDeleteModal(true);
+    };
 
+    const confirmDelete = async () => {
         try {
             const res = await fetch('/api/quest/delete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ questId: editingQuest.id }),
+                body: JSON.stringify({ questId: questToDelete.id }),
             });
 
             if (!res.ok) {
@@ -200,6 +206,8 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
                 throw new Error(data.error || 'Failed to delete quest');
             }
 
+            setShowDeleteModal(false);
+            setQuestToDelete(null);
             setShowEditModal(false);
             setEditingQuest(null);
             if (onRefresh) onRefresh();
@@ -697,6 +705,25 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
                 }} className='mt-4'>
                     Close
                 </BubbleButton>
+            </Modal>
+
+            {/* Delete Confirmation Modal */}
+            <Modal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)}>
+                <h2 className='font-bold text-lg mb-2'>Delete Quest?</h2>
+                <p className='text-sm text-gray-600 mb-4'>
+                    Are you sure you want to delete "{questToDelete?.title}"? This cannot be undone.
+                </p>
+                <div className='flex gap-2'>
+                    <BubbleButton 
+                        onClick={confirmDelete}
+                        className='bg-red-500 hover:bg-red-600 text-white'
+                    >
+                        Delete
+                    </BubbleButton>
+                    <BubbleButton onClick={() => setShowDeleteModal(false)}>
+                        Cancel
+                    </BubbleButton>
+                </div>
             </Modal>
         </div>
     );

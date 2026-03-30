@@ -17,12 +17,12 @@ export async function POST(req) {
         const { questId, title, description, reward_coins, reward_xp, assigned_to } = await req.json();
 
         const [quest] = await pool.query(
-            `SELECT * FROM Quests WHERE id = ? AND context_type = 'guild' AND guild_id = ?`,
+            `SELECT * FROM Quests WHERE id = ? AND ((context_type = 'guild' AND guild_id = ?) OR (context_type = 'party'))`,
             [questId, user.guild.guild_id]
         );
 
         if (!quest.length) {
-            return NextResponse.json({ error: 'Quest not found' }, { status: 404 });
+            return NextResponse.json({ error: 'Quest not found or access denied' }, { status: 404 });
         }
 
         if (quest[0].status === 'completed') {
