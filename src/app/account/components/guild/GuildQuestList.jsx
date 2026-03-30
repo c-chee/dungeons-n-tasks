@@ -449,20 +449,24 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
 
                 <div className='flex gap-2 mb-2'>
                     <div className='flex flex-col w-1/2'>
-                        <label className='text-sm font-medium mb-1'>Reward Coins</label>
+                        <label className='text-sm font-medium mb-1'>Reward Coins (max 20)</label>
                         <input
                             type='number'
                             value={rewardCoins}
-                            onChange={(e) => setRewardCoins(Number(e.target.value))}
+                            onChange={(e) => setRewardCoins(Math.min(20, Math.max(0, Number(e.target.value))))}
+                            max='20'
+                            min='0'
                             className='border p-1 w-full'
                         />
                     </div>
                     <div className='flex flex-col w-1/2'>
-                        <label className='text-sm font-medium mb-1'>Reward XP</label>
+                        <label className='text-sm font-medium mb-1'>Reward XP (max 20)</label>
                         <input
                             type='number'
                             value={rewardXp}
-                            onChange={(e) => setRewardXp(Number(e.target.value))}
+                            onChange={(e) => setRewardXp(Math.min(20, Math.max(0, Number(e.target.value))))}
+                            max='20'
+                            min='0'
                             className='border p-1 w-full'
                         />
                     </div>
@@ -558,20 +562,24 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
 
                 <div className='flex gap-2 mb-2'>
                     <div className='flex flex-col w-1/2'>
-                        <label className='text-sm font-medium mb-1'>Reward Coins</label>
+                        <label className='text-sm font-medium mb-1'>Reward Coins (max 20)</label>
                         <input
                             type='number'
                             value={editRewardCoins}
-                            onChange={(e) => setEditRewardCoins(Number(e.target.value))}
+                            onChange={(e) => setEditRewardCoins(Math.min(20, Math.max(0, Number(e.target.value))))}
+                            max='20'
+                            min='0'
                             className='border p-1 w-full'
                         />
                     </div>
                     <div className='flex flex-col w-1/2'>
-                        <label className='text-sm font-medium mb-1'>Reward XP</label>
+                        <label className='text-sm font-medium mb-1'>Reward XP (max 20)</label>
                         <input
                             type='number'
                             value={editRewardXp}
-                            onChange={(e) => setEditRewardXp(Number(e.target.value))}
+                            onChange={(e) => setEditRewardXp(Math.min(20, Math.max(0, Number(e.target.value))))}
+                            max='20'
+                            min='0'
                             className='border p-1 w-full'
                         />
                     </div>

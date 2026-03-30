@@ -1,6 +1,6 @@
 export default function Toolbar({ view, setView }) {
     return (
-        <div className='fixed bottom-0 left-0 w-full bg-[var(--brown)] text-white flex justify-around p-4'>
+        <div className='fixed bottom-0 left-0 w-full bg-[var(--dark-brown)] text-white flex justify-around p-4'>
 
             <button
                 onClick={() => setView('quests')}
@@ -17,7 +17,7 @@ export default function Toolbar({ view, setView }) {
             </button>
 
             <button disabled className='opacity-50'>
-                Shop
+                Shop [Coming soon!]
             </button>
 
         </div>

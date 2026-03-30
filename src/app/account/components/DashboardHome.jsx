@@ -107,55 +107,63 @@ export default function DashboardHome({ data }) {
     }
 
     return (
-        <div className='flex flex-col gap-6 min-h-screen max-w-5xl p-6
+        <div className='min-h-screen max-w-7xl mx-auto p-6
                         bg-[url("/images/home-bg.png")] bg-cover bg-center bg-no-repeat'>
 
-            <StatsCard 
-                coins={user?.coins} 
-                level={user?.level}
-                level_xp={user?.level_xp}
-                guild={guild}
-                onLeave={leaveGuild}
-            />
+            <div className='flex flex-col lg:flex-row gap-6'>
+                {/* Left Column */}
+                <div className='flex flex-col gap-6 w-full lg:w-1/3'>
+                    <StatsCard 
+                        coins={user?.coins} 
+                        level={user?.level}
+                        level_xp={user?.level_xp}
+                        guild={guild}
+                        onLeave={leaveGuild}
+                    />
 
-            <CurrentMissionsCard 
-                quests={quests?.assignedQuests || []}
-                onUpdateStatus={updateQuestStatus}
-                onSubmitComplete={submitQuestComplete}
-            />
+                    <CurrentMissionsCard 
+                        quests={quests?.assignedQuests || []}
+                        onUpdateStatus={updateQuestStatus}
+                        onSubmitComplete={submitQuestComplete}
+                    />
+                </div>
 
-            {guild ? (
-                <GuildContainer
-                    user={user}
-                    guild={guild}
-                    guildQuests={quests?.guildQuests || []}
-                    partyQuests={quests?.partyQuests || []}
-                    pendingReviewQuests={quests?.pendingReviewQuests || []}
-                    partyPendingReviewQuests={quests?.partyPendingReviewQuests || []}
-                    guildRequests={guildRequests || []}
-                    guildMembers={guildMembers || []}
-                    guildParties={guildParties || []}
-                    joinCode={joinCode}
-                    pickupRequests={quests?.pickupRequests || []}
-                    userPendingRequests={quests?.userPendingRequests || []}
-                    onRemoveMember={removeMember}
-                    onRefresh={refreshDashboard}
-                    onApproveComplete={approveQuestComplete}
-                    onRevise={reviseQuest}
-                />
-            ) : pendingGuildRequests?.length > 0 ? (
-                <PendingRequestCard 
-                    requests={pendingGuildRequests} 
-                    onCancel={cancelGuildRequest}
-                />
-            ) : (
-                <JoinCard
-                    type='guild'
-                    code={guildCode}
-                    setCode={setGuildCode}
-                    onJoin={joinGuild}
-                />
-            )}
+                {/* Right Column */}
+                <div className='w-full lg:w-2/3'>
+                    {guild ? (
+                        <GuildContainer
+                            user={user}
+                            guild={guild}
+                            guildQuests={quests?.guildQuests || []}
+                            partyQuests={quests?.partyQuests || []}
+                            pendingReviewQuests={quests?.pendingReviewQuests || []}
+                            partyPendingReviewQuests={quests?.partyPendingReviewQuests || []}
+                            guildRequests={guildRequests || []}
+                            guildMembers={guildMembers || []}
+                            guildParties={guildParties || []}
+                            joinCode={joinCode}
+                            pickupRequests={quests?.pickupRequests || []}
+                            userPendingRequests={quests?.userPendingRequests || []}
+                            onRemoveMember={removeMember}
+                            onRefresh={refreshDashboard}
+                            onApproveComplete={approveQuestComplete}
+                            onRevise={reviseQuest}
+                        />
+                    ) : pendingGuildRequests?.length > 0 ? (
+                        <PendingRequestCard 
+                            requests={pendingGuildRequests} 
+                            onCancel={cancelGuildRequest}
+                        />
+                    ) : (
+                        <JoinCard
+                            type='guild'
+                            code={guildCode}
+                            setCode={setGuildCode}
+                            onJoin={joinGuild}
+                        />
+                    )}
+                </div>
+            </div>
         </div>
     );
 }

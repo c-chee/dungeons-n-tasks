@@ -25,7 +25,7 @@ export default function AccountLayout({ children }) {
     }
 
     return (
-        <div className='min-h-screen w-full'>
+        <div className='min-h-screen w-full flex flex-col content-center'>
             {children}
         </div>
     );
