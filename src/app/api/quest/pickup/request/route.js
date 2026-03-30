@@ -31,6 +31,17 @@ export async function POST(req) {
             return NextResponse.json({ error: 'Quest is already assigned' }, { status: 400 });
         }
 
+        if (quest[0].party_id) {
+            const [partyMember] = await pool.query(
+                `SELECT * FROM PartyMembers WHERE party_id = ? AND user_id = ? AND status = 'approved'`,
+                [quest[0].party_id, user.id]
+            );
+
+            if (!partyMember.length) {
+                return NextResponse.json({ error: 'Only party members can request this quest' }, { status: 403 });
+            }
+        }
+
         const guildId = quest[0].guild_id;
 
         const [existingRequest] = await pool.query(

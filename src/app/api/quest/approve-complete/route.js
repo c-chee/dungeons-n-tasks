@@ -17,7 +17,7 @@ export async function POST(req) {
         const { questId } = await req.json();
 
         const [quest] = await pool.query(
-            `SELECT * FROM Quests WHERE id = ? AND context_type = 'guild' AND guild_id = ?`,
+            `SELECT * FROM Quests WHERE id = ? AND guild_id = ?`,
             [questId, user.guild.guild_id]
         );
 
@@ -32,6 +32,7 @@ export async function POST(req) {
         const assignedUserId = quest[0].assigned_to;
         const rewardCoins = quest[0].reward_coins;
         const rewardXp = quest[0].reward_xp;
+        const partyId = quest[0].party_id;
 
         const [assignedUser] = await pool.query('SELECT * FROM Users WHERE id = ?', [assignedUserId]);
         if (!assignedUser.length) {
@@ -60,6 +61,13 @@ export async function POST(req) {
                 `UPDATE Users SET coins = ?, level_xp = ?, level = ? WHERE id = ?`,
                 [newCoins, newXp, newLevel, assignedUserId]
             );
+
+            if (partyId) {
+                await connection.query(
+                    `UPDATE Parties SET xp_current = xp_current + ? WHERE id = ?`,
+                    [rewardXp, partyId]
+                );
+            }
 
             await connection.commit();
             connection.release();

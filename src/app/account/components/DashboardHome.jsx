@@ -3,16 +3,14 @@ import { useState } from 'react';
 import StatsCard from './cards/StatsCard';
 import CurrentMissionsCard from './cards/CurrentMissionsCard';
 import GuildContainer from './guild/GuildCardContainer';
-import PartyContainer from './cards/PartyCardContainer';
 import JoinCard from './cards/JoinCard';
 import PendingRequestCard from './cards/PendingRequestCard';
 
 export default function DashboardHome({ data }) {
     const [dashboardData, setDashboardData] = useState(data);
     const [guildCode, setGuildCode] = useState('');
-    const [partyCode, setPartyCode] = useState('');
 
-    const { user, guild, party, guildRequests, partyRequests, pendingGuildRequests, guildMembers, guildParties, quests, joinCode } = dashboardData;
+    const { user, guild, guildRequests, pendingGuildRequests, guildMembers, guildParties, quests, joinCode } = dashboardData;
 
     const refreshDashboard = async () => {
         try {
@@ -34,16 +32,6 @@ export default function DashboardHome({ data }) {
             body: JSON.stringify({ joinCode: guildCode }),
         });
         if (res.ok) refreshDashboard();
-    }
-
-    async function joinParty() {
-        if (!partyCode) return;
-        await fetch('/api/party/join', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ code: partyCode }),
-        });
-        refreshDashboard();
     }
 
     async function leaveGuild() {
@@ -71,15 +59,6 @@ export default function DashboardHome({ data }) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ guildId: guild.guild_id, memberId }),
-        });
-        if (res.ok) refreshDashboard();
-    }
-
-    async function approveParty(userId) {
-        const res = await fetch('/api/party/approve', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, partyId: party.party_id }),
         });
         if (res.ok) refreshDashboard();
     }
@@ -150,7 +129,9 @@ export default function DashboardHome({ data }) {
                     user={user}
                     guild={guild}
                     guildQuests={quests?.guildQuests || []}
+                    partyQuests={quests?.partyQuests || []}
                     pendingReviewQuests={quests?.pendingReviewQuests || []}
+                    partyPendingReviewQuests={quests?.partyPendingReviewQuests || []}
                     guildRequests={guildRequests || []}
                     guildMembers={guildMembers || []}
                     guildParties={guildParties || []}
@@ -171,22 +152,6 @@ export default function DashboardHome({ data }) {
                     code={guildCode}
                     setCode={setGuildCode}
                     onJoin={joinGuild}
-                />
-            )}
-
-            {party ? (
-                <PartyContainer
-                    user={user}
-                    party={party}
-                    partyQuests={quests?.partyQuests || []}
-                    partyRequests={partyRequests || []}
-                />
-            ) : (
-                <JoinCard
-                    type='party'
-                    code={partyCode}
-                    setCode={setPartyCode}
-                    onJoin={joinParty}
                 />
             )}
         </div>

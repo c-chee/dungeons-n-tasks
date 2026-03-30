@@ -1,5 +1,6 @@
 import pool from '@/lib/db';
 import { getUserFromToken } from '@/lib/getUserFromToken';
+import { NextResponse } from 'next/server';
 
 export async function POST(req) {
     const user = await getUserFromToken();

@@ -27,26 +27,50 @@ const TrashIcon = () => (
     </svg>
 );
 
-export default function QuestBoard({ data, onRefresh }) {
+export default function QuestBoard({ data, onRefresh, onApproveComplete, onRevise }) {
     const { showToast } = useToast();
-    const { guild, party, quests, user } = data || {};
+    const { guild, party, quests, user, guildParties } = data || {};
     const isGuildMaster = guild?.role === 'guild_master';
 
     const allQuests = quests?.availableQuests || [];
-    const activeQuests = allQuests.filter(q => q.status !== 'completed');
-    const completedQuests = allQuests.filter(q => q.status === 'completed');
-    
     const pickupRequests = quests?.pickupRequests || [];
     const userPendingRequests = quests?.userPendingRequests || [];
+
+    const isUserInParty = (partyId) => {
+        if (!partyId || !guildParties) return false;
+        const partyData = guildParties.find(p => p.id === partyId);
+        if (!partyData?.members) return false;
+        return partyData.members.some(m => m.user_id === user?.id);
+    };
+
+    const isQuestVisible = (quest) => {
+        if (quest.context_type === 'guild') return true;
+        if (quest.context_type === 'party') {
+            return isGuildMaster || isUserInParty(quest.party_id);
+        }
+        return false;
+    };
+
+    const visibleQuests = allQuests.filter(q => isQuestVisible(q));
+    const activeQuests = visibleQuests.filter(q => q.status !== 'completed');
+    const completedQuests = visibleQuests.filter(q => q.status === 'completed');
+    const pendingReviewQuests = visibleQuests.filter(q => q.status === 'pending_review');
 
     const [selectedQuest, setSelectedQuest] = useState(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [questToDelete, setQuestToDelete] = useState(null);
 
+    const [showReviseModal, setShowReviseModal] = useState(false);
+    const [currentReviseQuest, setCurrentReviseQuest] = useState(null);
+    const [reviseNote, setReviseNote] = useState('');
+
     const getStatusBadge = (quest) => {
         if (quest.status === 'completed') {
             return { bg: '#e5e7eb', text: '#6b7280', label: 'Completed' };
+        }
+        if (quest.status === 'pending_review') {
+            return { bg: 'var(--status-pending-review-bg)', text: 'var(--status-pending-review)', label: 'Pending Review' };
         }
         if (quest.status === 'available' && !quest.assigned_to) {
             return { bg: 'var(--status-available-bg)', text: 'var(--status-available)', label: 'Available' };
@@ -59,10 +83,6 @@ export default function QuestBoard({ data, onRefresh }) {
 
     const hasUserRequested = (questId) => {
         return userPendingRequests.some(r => r.quest_id === questId);
-    };
-
-    const isCreator = (quest) => {
-        return quest.created_by === user?.id;
     };
 
     const handlePickup = async (questId) => {
@@ -129,6 +149,16 @@ export default function QuestBoard({ data, onRefresh }) {
         }
     };
 
+    const handleApproveComplete = async (questId) => {
+        try {
+            if (onApproveComplete) {
+                onApproveComplete(questId);
+            }
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    };
+
     const openQuestDetail = (quest) => {
         setSelectedQuest(quest);
         setShowDetailModal(true);
@@ -161,37 +191,79 @@ export default function QuestBoard({ data, onRefresh }) {
         }
     };
 
+    const openReviseModal = (quest, e) => {
+        e?.stopPropagation();
+        setCurrentReviseQuest(quest);
+        setReviseNote('');
+        setShowReviseModal(true);
+    };
+
+    const handleReviseSubmit = () => {
+        if (!reviseNote.trim()) {
+            showToast('Please enter feedback', 'error');
+            return;
+        }
+        if (onRevise) {
+            onRevise(currentReviseQuest.id, reviseNote);
+        }
+        setShowReviseModal(false);
+        setCurrentReviseQuest(null);
+        setReviseNote('');
+    };
+
     const canUserPickup = (quest) => {
-        if (quest.status !== 'available') return false;
-        if (quest.assigned_to) return false;
-        if (hasUserRequested(quest.id)) return false;
-        if (userPendingRequests.length >= 3) return false;
-        return true;
+        if (quest.status !== 'available') return { allowed: false, reason: 'Quest not available' };
+        if (quest.assigned_to) return { allowed: false, reason: 'Quest already assigned' };
+        if (hasUserRequested(quest.id)) return { allowed: false, reason: 'Request already sent' };
+        if (userPendingRequests.length >= 3) return { allowed: false, reason: 'Max requests reached' };
+        if (quest.party_id && !isUserInParty(quest.party_id)) {
+            return { allowed: false, reason: 'Party members only' };
+        }
+        return { allowed: true, reason: '' };
+    };
+
+    const getMemberName = (userId) => {
+        if (!guildParties) return null;
+        for (const party of guildParties) {
+            const member = party.members?.find(m => m.user_id === userId);
+            if (member) return `${member.first_name} ${member.last_name}`;
+        }
+        return null;
     };
 
     const renderQuestCard = (quest, isCompleted = false) => {
         const status = getStatusBadge(quest);
         const userRequested = hasUserRequested(quest.id);
-        const canPickup = canUserPickup(quest);
+        const pickupCheck = canUserPickup(quest);
+        const canPickup = pickupCheck.allowed;
+        const pickupReason = pickupCheck.reason;
         const assignedName = quest.assigned_first_name 
             ? `${quest.assigned_first_name} ${quest.assigned_last_name}`
             : null;
         const creatorName = quest.creator_first_name
             ? `${quest.creator_first_name} ${quest.creator_last_name}`
             : null;
+        const isPendingReview = quest.status === 'pending_review';
 
         return (
             <div 
                 key={quest.id} 
                 className={`border p-4 rounded bg-white hover:shadow-md transition-shadow cursor-pointer ${
                     isCompleted ? 'opacity-60 bg-gray-50' : ''
-                }`}
+                } ${isPendingReview ? 'border-purple-400' : ''}`}
                 onClick={() => openQuestDetail(quest)}
             >
                 <div className='flex justify-between items-start mb-2'>
-                    <h3 className={`font-semibold ${isCompleted ? 'line-through text-gray-500' : ''}`}>
-                        {quest.title}
-                    </h3>
+                    <div className='flex items-center gap-2 flex-wrap'>
+                        <h3 className={`font-semibold ${isCompleted ? 'line-through text-gray-500' : ''}`}>
+                            {quest.title}
+                        </h3>
+                        {quest.context_type === 'party' && quest.party_name && (
+                            <span className='text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded'>
+                                Party: {quest.party_name}
+                            </span>
+                        )}
+                    </div>
                     <span 
                         className='text-xs px-2 py-0.5 rounded font-medium'
                         style={{ 
@@ -210,14 +282,10 @@ export default function QuestBoard({ data, onRefresh }) {
                 <div className='flex items-center gap-3 text-xs text-gray-500 mb-2'>
                     <span>{quest.reward_coins} coins</span>
                     <span>{quest.reward_xp} XP</span>
-                    <span className='text-gray-400'>
-                        {quest.context_type === 'guild' ? 'Guild Quest' : 'Party Quest'}
-                    </span>
+                    {quest.context_type === 'guild' && (
+                        <span className='text-gray-400'>Guild Quest</span>
+                    )}
                 </div>
-
-                {creatorName && !isCompleted && (
-                    <p className='text-xs text-gray-400 mb-2'>Created by: {creatorName}</p>
-                )}
 
                 {assignedName && (
                     <div className='flex items-center gap-1 text-xs text-blue-600 mb-2'>
@@ -226,24 +294,46 @@ export default function QuestBoard({ data, onRefresh }) {
                     </div>
                 )}
 
-                {quest.requesters && !isCompleted && (
+                {quest.requesters && !isCompleted && !isPendingReview && (
                     <div className='flex items-center gap-1 text-xs text-orange-600 mb-2'>
                         <WaitingIcon />
                         <span>Waiting: {quest.requesters}</span>
                     </div>
                 )}
 
-                {isCompleted && isGuildMaster && (
-                    <button
-                        onClick={(e) => openDeleteConfirm(quest, e)}
-                        className='flex items-center gap-1 text-xs text-red-500 hover:text-red-700 mt-2'
-                    >
-                        <TrashIcon />
-                        <span>Remove from board</span>
-                    </button>
+                {isGuildMaster && (
+                    <div onClick={e => e.stopPropagation()} className='mt-2'>
+                        {isPendingReview ? (
+                            <div className='flex gap-2 flex-wrap'>
+                                <BubbleButton 
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleApproveComplete(quest.id);
+                                    }}
+                                    className='bg-green-500 hover:bg-green-600 text-white text-xs'
+                                >
+                                    Approve
+                                </BubbleButton>
+                                <BubbleButton 
+                                    onClick={(e) => openReviseModal(quest, e)}
+                                    className='bg-orange-500 hover:bg-orange-600 text-white text-xs'
+                                >
+                                    Revise
+                                </BubbleButton>
+                            </div>
+                        ) : isCompleted ? (
+                            <button
+                                onClick={(e) => openDeleteConfirm(quest, e)}
+                                className='flex items-center gap-1 text-xs text-red-500 hover:text-red-700'
+                            >
+                                <TrashIcon />
+                                <span>Remove</span>
+                            </button>
+                        ) : null}
+                    </div>
                 )}
 
-                {!isCompleted && (
+                {!isGuildMaster && !isCompleted && !isPendingReview && (
                     <div onClick={e => e.stopPropagation()}>
                         {userRequested ? (
                             <div className='flex gap-2 mt-2'>
@@ -267,7 +357,7 @@ export default function QuestBoard({ data, onRefresh }) {
                                 disabled={!canPickup}
                                 className={`mt-2 text-xs ${canPickup ? 'bg-blue-500 hover:bg-blue-600 text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
                             >
-                                {quest.assigned_to ? 'Unavailable' : userPendingRequests.length >= 3 ? 'Max Requests' : 'Pick-up'}
+                                {canPickup ? 'Pick-up' : pickupReason}
                             </BubbleButton>
                         )}
                     </div>
@@ -290,10 +380,21 @@ export default function QuestBoard({ data, onRefresh }) {
             <Card variant='default'>
                 <h2 className='font-bold text-lg mb-4'>Quest Board</h2>
 
-                {activeQuests.length === 0 && completedQuests.length === 0 ? (
+                {activeQuests.length === 0 && completedQuests.length === 0 && pendingReviewQuests.length === 0 ? (
                     <p className='text-sm text-gray-500'>No quests available.</p>
                 ) : (
                     <>
+                        {pendingReviewQuests.length > 0 && (
+                            <div className='mb-6'>
+                                <h3 className='font-semibold text-purple-700 mb-3 text-sm'>
+                                    Pending Review ({pendingReviewQuests.length})
+                                </h3>
+                                <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+                                    {pendingReviewQuests.map(quest => renderQuestCard(quest, false))}
+                                </div>
+                            </div>
+                        )}
+
                         {activeQuests.length > 0 && (
                             <div className='grid grid-cols-1 md:grid-cols-2 gap-4 mb-6'>
                                 {activeQuests.map(quest => renderQuestCard(quest, false))}
@@ -471,6 +572,40 @@ export default function QuestBoard({ data, onRefresh }) {
                     <BubbleButton onClick={() => {
                         setShowDeleteModal(false);
                         setQuestToDelete(null);
+                    }}>
+                        Cancel
+                    </BubbleButton>
+                </div>
+            </Modal>
+
+            <Modal isOpen={showReviseModal} onClose={() => {
+                setShowReviseModal(false);
+                setCurrentReviseQuest(null);
+                setReviseNote('');
+            }}>
+                <h2 className='font-bold text-lg mb-4 text-orange-600'>Revise Quest</h2>
+                <p className='text-sm text-gray-600 mb-3'>
+                    Provide feedback for <strong>{currentReviseQuest?.title}</strong>
+                </p>
+                
+                <textarea
+                    placeholder='Enter feedback for the quest assignee...'
+                    value={reviseNote}
+                    onChange={(e) => setReviseNote(e.target.value)}
+                    className='w-full border p-2 rounded min-h-[100px]'
+                />
+                
+                <div className='flex gap-2 mt-4'>
+                    <BubbleButton 
+                        onClick={handleReviseSubmit}
+                        className='bg-orange-500 hover:bg-orange-600 text-white'
+                    >
+                        Send Back
+                    </BubbleButton>
+                    <BubbleButton onClick={() => {
+                        setShowReviseModal(false);
+                        setCurrentReviseQuest(null);
+                        setReviseNote('');
                     }}>
                         Cancel
                     </BubbleButton>

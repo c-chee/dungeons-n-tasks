@@ -9,7 +9,7 @@ export default function GuildPartyList({ parties }) {
                 parties.map((p) => (
                     <div key={p.id} className='border p-2 mb-2 rounded'>
                         <p>{p.name}</p>
-                        <p>XP Progress: {p.xp}/{p.xp_goal}</p>
+                        <p>XP Total: {p.xp_current}</p>
                     </div>
                 ))
             ) : (

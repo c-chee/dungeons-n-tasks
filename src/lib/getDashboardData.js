@@ -58,12 +58,50 @@ export async function getDashboardData(userId) {
         );
         guildMembers = memberRows;
 
-        // Get guild parties
+        // Get guild parties with members
         const [partyRows] = await pool.query(
-            `SELECT * FROM Parties WHERE guild_id = ?`,
+            `SELECT p.*,
+                leader.first_name as leader_first_name,
+                leader.last_name as leader_last_name
+             FROM Parties p
+             LEFT JOIN Users leader ON p.leader_id = leader.id
+             WHERE p.guild_id = ?
+             ORDER BY p.name`,
             [guild.guild_id]
         );
-        guildParties = partyRows;
+
+        // Get all party members for these parties
+        const [partyMemberRows] = await pool.query(
+            `SELECT pm.party_id, pm.user_id, pm.role, u.first_name, u.last_name, u.level
+             FROM PartyMembers pm
+             JOIN Users u ON pm.user_id = u.id
+             JOIN Parties p ON pm.party_id = p.id
+             WHERE p.guild_id = ? AND pm.status = 'approved'
+             ORDER BY pm.party_id, pm.role DESC`,
+            [guild.guild_id]
+        );
+
+        // Group members by party
+        const membersByParty = {};
+        for (const member of partyMemberRows) {
+            if (!membersByParty[member.party_id]) {
+                membersByParty[member.party_id] = [];
+            }
+            membersByParty[member.party_id].push({
+                user_id: member.user_id,
+                first_name: member.first_name,
+                last_name: member.last_name,
+                level: member.level,
+                role: member.role
+            });
+        }
+
+        // Attach members to parties
+        guildParties = partyRows.map(party => ({
+            ...party,
+            members: membersByParty[party.id] || [],
+            member_count: (membersByParty[party.id] || []).length
+        }));
     }
 
     // 3. Party membership

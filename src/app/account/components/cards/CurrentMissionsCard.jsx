@@ -147,6 +147,12 @@ export default function CurrentMissionsCard({ quests, onUpdateStatus, onSubmitCo
               </p>
             )}
             
+            {quest.party_name && (
+              <p className='text-xs text-purple-600 mb-1'>
+                Party: {quest.party_name}
+              </p>
+            )}
+            
             <p className='text-sm text-gray-600'>{displayDesc}</p>
             {isLong && (
               <button 

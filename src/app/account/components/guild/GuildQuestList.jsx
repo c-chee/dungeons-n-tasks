@@ -276,6 +276,11 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
                                     <div className='flex-1'>
                                         <div className='flex items-center gap-2 mb-1'>
                                             <p className='font-medium'>{q.title}</p>
+                                            {q.context_type === 'party' && q.party_name && (
+                                                <span className='text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded'>
+                                                    Party: {q.party_name}
+                                                </span>
+                                            )}
                                             <span 
                                                 className='text-xs px-2 py-0.5 rounded font-medium'
                                                 style={{ 
@@ -345,6 +350,11 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
                                 <div className='flex-1'>
                                     <div className='flex items-center gap-2 mb-1'>
                                         <p className='font-medium'>{q.title}</p>
+                                        {q.context_type === 'party' && q.party_name && (
+                                            <span className='text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded'>
+                                                Party: {q.party_name}
+                                            </span>
+                                        )}
                                         <span 
                                             className='text-xs px-2 py-0.5 rounded font-medium'
                                             style={{ 
