@@ -48,7 +48,7 @@ export default function Roles() {
                 
                 {/* Billboard frame - centered */}
                 <div className='bg-[var(--cream)] border-4 border-[var(--dark-brown)] rounded-lg p-6 lg:p-8'>
-                    <h2 className='arcade text-3xl lg:text-3xl font-bold text-center text-[var(--dark-brown)] mb-8 border-b-2 py-4'>
+                    <h2 className='arcade outline-text text-2xl lg:text-3xl font-bold text-center text-[var(--dark-brown)] mb-8 border-b-2 py-4'>
                         ROLES
                     </h2>
                     
@@ -62,7 +62,7 @@ export default function Roles() {
                                 <h3 className='arcade text-xl text-[var(--dark-brown)] mb-1'>
                                     {role.term}
                                 </h3>
-                                <p className='text-[var(--dark-brown)]/90 text-sm'>
+                                <p className='text-[var(--dark-brown)]/90 text-md'>
                                     {role.meaning}
                                 </p>
                             </div>
