@@ -136,6 +136,8 @@ export default function DashboardHome({ data }) {
                     guildMembers={guildMembers || []}
                     guildParties={guildParties || []}
                     joinCode={joinCode}
+                    pickupRequests={quests?.pickupRequests || []}
+                    userPendingRequests={quests?.userPendingRequests || []}
                     onRemoveMember={removeMember}
                     onRefresh={refreshDashboard}
                     onApproveComplete={approveQuestComplete}

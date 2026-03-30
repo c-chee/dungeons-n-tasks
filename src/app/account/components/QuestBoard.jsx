@@ -81,54 +81,6 @@ export default function QuestBoard({ data, onRefresh, onApproveComplete, onRevis
         }
     };
 
-    const handleCancelRequest = async (questId) => {
-        try {
-            const res = await fetch('/api/quest/pickup/cancel', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ questId }),
-            });
-            if (!res.ok) throw new Error('Failed to cancel request');
-            showToast('Request cancelled', 'success');
-            if (onRefresh) onRefresh();
-        } catch (err) {
-            showToast(err.message, 'error');
-        }
-    };
-
-    const handleAcceptRequest = async (requestId) => {
-        try {
-            const res = await fetch('/api/quest/pickup/accept', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ requestId }),
-            });
-            if (!res.ok) {
-                const result = await res.json();
-                throw new Error(result.error);
-            }
-            showToast('Quest assigned successfully!', 'success');
-            if (onRefresh) onRefresh();
-        } catch (err) {
-            showToast(err.message, 'error');
-        }
-    };
-
-    const handleDeclineRequest = async (requestId) => {
-        try {
-            const res = await fetch('/api/quest/pickup/decline', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ requestId }),
-            });
-            if (!res.ok) throw new Error('Failed to decline request');
-            showToast('Request declined', 'success');
-            if (onRefresh) onRefresh();
-        } catch (err) {
-            showToast(err.message, 'error');
-        }
-    };
-
     const handleApproveComplete = async (questId) => {
         try {
             if (onApproveComplete) {
@@ -394,67 +346,6 @@ export default function QuestBoard({ data, onRefresh, onApproveComplete, onRevis
                     </>
                 )}
             </Card>
-
-            {isGuildMaster && pickupRequests.length > 0 && (
-                <Card variant='default'>
-                    <h2 className='font-bold text-lg mb-4'>Pickup Requests</h2>
-                    <div className='space-y-3'>
-                        {pickupRequests.map(request => (
-                            <div key={request.id} className='border p-3 rounded bg-gray-50'>
-                                <div className='flex justify-between items-start'>
-                                    <div>
-                                        <h4 className='font-medium'>{request.quest_title}</h4>
-                                        <div className='flex items-center gap-2 mt-1'>
-                                            <span className='text-sm text-gray-600'>
-                                                {request.first_name} {request.last_name}
-                                            </span>
-                                            <span className='text-xs text-gray-400'>
-                                                Level {request.user_level}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className='flex gap-2'>
-                                        <BubbleButton 
-                                            onClick={() => handleAcceptRequest(request.id)}
-                                            className='bg-green-500 hover:bg-green-600 text-white text-xs'
-                                        >
-                                            Accept
-                                        </BubbleButton>
-                                        <BubbleButton 
-                                            onClick={() => handleDeclineRequest(request.id)}
-                                            className='bg-gray-400 hover:bg-gray-500 text-white text-xs'
-                                        >
-                                            Decline
-                                        </BubbleButton>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </Card>
-            )}
-
-            {!isGuildMaster && userPendingRequests.length > 0 && (
-                <Card variant='default'>
-                    <h2 className='font-bold text-lg mb-4'>My Requests</h2>
-                    <div className='space-y-2'>
-                        {userPendingRequests.map(request => {
-                            const quest = allQuests.find(q => q.id === request.quest_id);
-                            return (
-                                <div key={request.id} className='border p-2 rounded bg-gray-50 flex justify-between items-center'>
-                                    <span className='text-sm'>{quest?.title || 'Unknown Quest'}</span>
-                                    <button 
-                                        onClick={() => handleCancelRequest(request.quest_id)}
-                                        className='text-xs text-red-500 hover:text-red-700 underline'
-                                    >
-                                        Cancel
-                                    </button>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </Card>
-            )}
 
             <Modal isOpen={showDetailModal} onClose={() => setShowDetailModal(false)}>
                 {selectedQuest && (
