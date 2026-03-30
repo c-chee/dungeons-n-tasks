@@ -6,7 +6,6 @@ export default function Home() {
     <div className='flex flex-col w-screen min-h-screen items-center justify-start bg-[var(--dark-green)]'>
       <Hero />
       <About />
-      <p className='h-[25em]'>Next section</p>
     </div>
   );
 }
