@@ -69,7 +69,7 @@ export default function RegisterForm() {
             onSubmit={handleSubmit}
             className='w-full h-full flex flex-col justify-center items-center p-8 gap-4'
         >
-            <h2 className='arcade text-2xl font-bold'>Register</h2>
+            <h2 className='arcade outline-text text-2xl font-bold'>Register</h2>
 
             <div className='flex flex-col gap-2 w-full'>
                 <RoleRadioButton

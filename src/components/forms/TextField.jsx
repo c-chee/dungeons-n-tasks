@@ -35,7 +35,7 @@ export default function TextField({
 
     return (
         <div className='flex flex-col gap-[4px] w-full'>
-            <label className='text-sm font-semibold'>{label}</label>
+            <label className='text-[15px] font-semibold'>{label}</label>
 
             <div className='relative w-full'>
                 <input

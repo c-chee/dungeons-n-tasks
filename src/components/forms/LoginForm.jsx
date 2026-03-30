@@ -60,7 +60,7 @@ export default function LoginForm() {
       className='w-full h-full flex flex-col justify-center items-center p-8 gap-4'
     >
 
-      <h2 className='arcade text-2xl font-bold'>Login</h2>
+      <h2 className='arcade outline-text text-2xl font-bold'>Login</h2>
 
       {/* Email */}
       <TextField
@@ -84,6 +84,16 @@ export default function LoginForm() {
       <BubbleButton type="submit" disabled={!isValid}>
         Login
       </BubbleButton>
+
+      {/* Forgot Password Button */}
+      <p className='text-[15px]'>
+        <span
+          className='cursor-pointer font-bold'
+          onClick={() => router.push('/forgot')}
+        >
+          Forgot Password?
+        </span>
+      </p>
 
       {/* Register Button */}
       <p className='text-[15px]'>
