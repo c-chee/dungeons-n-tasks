@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import TextField  from './TextField';
 import BubbleButton from '../ui/BubbleButton';
+import RoleRadioButton from './RoleRadioButton';
 
 export default function RegisterForm() {
     const router = useRouter();
@@ -12,7 +13,7 @@ export default function RegisterForm() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const [accountType, setAccountType] = useState('member'); // 'member' or 'guild_master'
+    const [accountType, setAccountType] = useState('member');
     const [guildName, setGuildName] = useState('');
 
     const [loading, setLoading] = useState(false);
@@ -55,7 +56,6 @@ export default function RegisterForm() {
                 return;
             }
 
-            // Redirect to login
             router.push('/login');
 
         } catch (err) {
@@ -71,30 +71,24 @@ export default function RegisterForm() {
         >
             <h2 className='arcade text-2xl font-bold'>Register</h2>
 
-            {/* Account type selection */}
-            <div className='flex gap-4'>
-                <label>
-                    <input
-                        type='radio'
-                        value='member'
-                        checked={accountType === 'member'}
-                        onChange={() => setAccountType('member')}
-                    />
-                    Member
-                </label>
-
-                <label>
-                    <input
-                        type='radio'
-                        value='guild_master'
-                        checked={accountType === 'guild_master'}
-                        onChange={() => setAccountType('guild_master')}
-                    />
-                    Guild Master
-                </label>
+            <div className='flex flex-col gap-2 w-full'>
+                <RoleRadioButton
+                    value='member'
+                    checked={accountType === 'member'}
+                    onChange={() => setAccountType('member')}
+                    label='Member'
+                    description='Join a guild and complete quests'
+                />
+                
+                <RoleRadioButton
+                    value='guild_master'
+                    checked={accountType === 'guild_master'}
+                    onChange={() => setAccountType('guild_master')}
+                    label='Guild Master'
+                    description='Create a guild and manage quests'
+                />
             </div>
 
-            {/* First name */}
             <TextField
                 label='First Name'
                 value={firstName}
@@ -102,7 +96,6 @@ export default function RegisterForm() {
                 required
             />
 
-            {/* Last name */}
             <TextField
                 label='Last Name'
                 value={lastName}
@@ -110,7 +103,6 @@ export default function RegisterForm() {
                 required
             />
 
-            {/* Email */}
             <TextField
                 label='Email'
                 type='email'
@@ -119,7 +111,6 @@ export default function RegisterForm() {
                 required
             />
 
-            {/* Password */}
             <TextField
                 label='Password'
                 type='password'
@@ -128,7 +119,6 @@ export default function RegisterForm() {
                 required
             />
 
-            {/* Conitional - Guild name */}
             {accountType === 'guild_master' && (
                 <TextField
                     label="Guild Name"
@@ -138,13 +128,11 @@ export default function RegisterForm() {
                 />
             )}
 
-            {/* Submit Button */}
             <BubbleButton type='submit' disabled={!isValid || loading}>
                 {loading ? 'Creating...' : 'Register'}
             </BubbleButton>
 
             <p className='text-[15px]'>
-
                 Already have an account?{' '}
                 <span
                     className='cursor-pointer font-bold'
@@ -152,7 +140,6 @@ export default function RegisterForm() {
                 >
                     Login
                 </span>
-
             </p>
             
         </form>
