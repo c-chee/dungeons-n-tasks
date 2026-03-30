@@ -3,7 +3,7 @@
 export default function Card({ children, variant = 'default' }) {
 
     const bgClass = {
-        default: 'bg-white',
+        default: 'bg-[var(--cream)]',
         blue: 'bg-[var(--light-blue)]',
         green: 'bg-green-50',
         blueDark: 'bg-blue-100',
@@ -11,7 +11,7 @@ export default function Card({ children, variant = 'default' }) {
     }[variant];
 
     return (
-        <div className={`p-4 border rounded ${bgClass} shadow-sm`}>
+        <div className={`p-4 border-2 rounded ${bgClass} shadow-sm`}>
             {children}
         </div>
     );

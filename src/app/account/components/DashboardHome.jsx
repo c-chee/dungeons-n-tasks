@@ -119,6 +119,8 @@ export default function DashboardHome({ data }) {
                         level_xp={user?.level_xp}
                         guild={guild}
                         onLeave={leaveGuild}
+                        firstName={user?.first_name}
+                        lastName={user?.last_name}
                     />
 
                     <CurrentMissionsCard 
