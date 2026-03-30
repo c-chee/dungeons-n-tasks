@@ -7,7 +7,7 @@ function PartyCard({ party, isExpanded, isMaster, isUserInParty, user, onToggleE
     return (
         <div 
             key={party.id} 
-            className={`border p-2 rounded ${isUserInParty ? 'border-green-400 bg-green-50' : ''}`}
+            className={`border p-2 rounded bg-white ${isUserInParty ? 'border-green-400 bg-green-50' : ''}`}
         >
             <div 
                 className='flex justify-between items-center cursor-pointer'
@@ -22,7 +22,7 @@ function PartyCard({ party, isExpanded, isMaster, isUserInParty, user, onToggleE
                         )}
                         <p className='font-medium'>{party.name}</p>
                         {isUserInParty && (
-                            <span className='text-xs bg-green-500 text-white px-2 py-0.5 rounded'>
+                            <span className='text-xs bg-green-600 text-white px-2 py-0.5 rounded'>
                                 Your Party
                             </span>
                         )}
@@ -35,15 +35,15 @@ function PartyCard({ party, isExpanded, isMaster, isUserInParty, user, onToggleE
                 </div>
                 <div className='flex items-center gap-2'>
                     {isMaster && (
-                        <button
+                        <BubbleButton
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onEdit(party);
                             }}
-                            className='text-blue-500 hover:text-blue-700 text-xs'
+                            className='text-xs ml-2'
                         >
                             Edit
-                        </button>
+                        </BubbleButton>
                     )}
                     <ChevronIcon expanded={isExpanded} size={16} />
                 </div>
@@ -70,10 +70,10 @@ function PartyCard({ party, isExpanded, isMaster, isUserInParty, user, onToggleE
                             {isMaster && m.user_id !== user?.id && (
                                 <button
                                     onClick={() => onRemoveMember(party.id, m.user_id)}
-                                    className='text-red-400 hover:text-red-600'
+                                    className='text-red-400 hover:text-red-600 cursor-pointer'
                                     title='Remove from party'
                                 >
-                                    <XIcon size={14} />
+                                    <XIcon size={18} />
                                 </button>
                             )}
                         </div>
@@ -95,10 +95,10 @@ export default function GuildPartiesList({
     onCreateParty 
 }) {
     return (
-        <div className='border p-2 rounded'>
+        <div>
             <h3 className='font-semibold flex justify-between items-center'>
                 Guild Parties
-                {isMaster && <BubbleButton onClick={onCreateParty}>+ Add</BubbleButton>}
+                {isMaster && <button onClick={onCreateParty} className='text-[var(--dark-green)] cursor-pointer hover:text-green-600 font-bold'>+ Add</button>}
             </h3>
 
             <div className='mt-2 flex flex-col gap-2'>

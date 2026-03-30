@@ -50,9 +50,12 @@ export async function getDashboardData(userId) {
 
         // Get guild members
         const [memberRows] = await pool.query(
-            `SELECT u.id, u.first_name, u.last_name, u.level, gm.role
+            `SELECT u.id, u.first_name, u.last_name, u.level, gm.role,
+                    p.name as party_name
              FROM GuildMembers gm
              JOIN Users u ON u.id = gm.user_id
+             LEFT JOIN PartyMembers pm ON pm.user_id = u.id AND pm.status = 'approved'
+             LEFT JOIN Parties p ON p.id = pm.party_id
              WHERE gm.guild_id = ? AND gm.status = 'approved'`,
             [guild.guild_id]
         );

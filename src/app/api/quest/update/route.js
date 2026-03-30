@@ -14,7 +14,7 @@ export async function POST(req) {
     }
 
     try {
-        const { questId, title, description, reward_coins, reward_xp, assigned_to } = await req.json();
+        const { questId, title, description, reward_coins, reward_xp, assigned_to, context_type, party_id } = await req.json();
 
         const [quest] = await pool.query(
             `SELECT * FROM Quests WHERE id = ? AND ((context_type = 'guild' AND guild_id = ?) OR (context_type = 'party'))`,
@@ -29,7 +29,9 @@ export async function POST(req) {
             return NextResponse.json({ error: 'Cannot edit completed quests' }, { status: 400 });
         }
 
-        const newStatus = assigned_to ? 'assigned' : 'available';
+        const isPartyQuest = context_type === 'party';
+        const newStatus = isPartyQuest ? 'available' : (assigned_to ? 'assigned' : 'available');
+        const newGuildId = isPartyQuest ? null : user.guild.guild_id;
 
         await pool.query(
             `UPDATE Quests 
@@ -38,9 +40,12 @@ export async function POST(req) {
                  reward_coins = COALESCE(?, reward_coins),
                  reward_xp = COALESCE(?, reward_xp),
                  assigned_to = ?,
+                 context_type = COALESCE(?, context_type),
+                 party_id = ?,
+                 guild_id = ?,
                  status = ?
              WHERE id = ?`,
-            [title, description, reward_coins, reward_xp, assigned_to, newStatus, questId]
+            [title, description, reward_coins, reward_xp, assigned_to, context_type, party_id, newGuildId, newStatus, questId]
         );
 
         return NextResponse.json({ success: true });

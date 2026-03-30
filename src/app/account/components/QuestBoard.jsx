@@ -18,9 +18,9 @@ export default function QuestBoard({ data, onRefresh, onApproveComplete, onRevis
 
     const isUserInParty = (partyId) => {
         if (!partyId || !guildParties) return false;
-        const partyData = guildParties.find(p => p.id === partyId);
+        const partyData = guildParties.find(p => String(p.id) === String(partyId));
         if (!partyData?.members) return false;
-        return partyData.members.some(m => m.user_id === user?.id);
+        return partyData.members.some(m => String(m.user_id) === String(user?.id));
     };
 
     const isQuestVisible = (quest) => {
@@ -47,16 +47,22 @@ export default function QuestBoard({ data, onRefresh, onApproveComplete, onRevis
 
     const getStatusBadge = (quest) => {
         if (quest.status === 'completed') {
-            return { bg: '#e5e7eb', text: '#6b7280', label: 'Completed' };
+            return { bg: 'var(--status-completed-bg)', text: 'var(--status-completed)', label: 'Completed' };
         }
         if (quest.status === 'pending_review') {
             return { bg: 'var(--status-pending-review-bg)', text: 'var(--status-pending-review)', label: 'Pending Review' };
         }
-        if (quest.status === 'available' && !quest.assigned_to) {
-            return { bg: 'var(--status-available-bg)', text: 'var(--status-available)', label: 'Available' };
+        if (quest.status === 'in_progress') {
+            return { bg: 'var(--status-in-progress-bg)', text: 'var(--status-in-progress)', label: 'In Progress' };
         }
-        if (quest.assigned_to) {
-            return { bg: 'var(--status-available-bg)', text: 'var(--status-available)', label: 'Assigned' };
+        if (quest.status === 'blocked') {
+            return { bg: 'var(--status-blocked-bg)', text: 'var(--status-blocked)', label: 'Blocked' };
+        }
+        if (quest.status === 'assigned') {
+            return { bg: 'var(--status-assigned-bg)', text: 'var(--status-assigned)', label: 'Assigned' };
+        }
+        if (!quest.assigned_to) {
+            return { bg: 'var(--status-available-bg)', text: 'var(--status-available)', label: 'Available' };
         }
         return { bg: '#f3f4f6', text: '#6b7280', label: quest.status };
     };

@@ -61,7 +61,7 @@ export default function DashboardClient({ data }) {
 
     const bgImages = {
         home: '/images/guild.png',
-        quests: '/images/field-bg.png',
+        quests: '/images/guild.png',
         shop: '/images/field-bg.png',
     };
 
@@ -71,7 +71,7 @@ export default function DashboardClient({ data }) {
             style={{ backgroundImage: `url(${bgImages[view]})` }}
         >
             {/* Main content */}
-            <div className='flex-1 w-full p-4  md:p-8 lg:p-10 mt-[4em]'>
+            <div className='flex-1 w-full p-4  md:p-8 lg:p-10 mt-[4em] '>
                 {view === 'home' && <DashboardHome data={dashboardData} />}
                 {view === 'quests' && (
                     <QuestBoard 

@@ -16,11 +16,11 @@ export default function StatsCard({ coins, level, level_xp, guild, onLeave, firs
                 <div className='flex-1'>
                     {userName ? (
                         <>
-                            <h2 className='font-bold text-lg'>{userName}</h2>
+                            <h2 className='arcade outline-text font-bold text-lg'>{userName}</h2>
                             <p className='text-sm text-gray-700'>Stats</p>
                         </>
                     ) : (
-                        <h2 className='font-bold text-lg'>Your Stats</h2>
+                        <h2 className='arcade outline-text font-bold text-lg'>Your Stats</h2>
                     )}
                     <div className='flex flex-col gap-1 mt-1'>
                         <LevelBadge level={level} level_xp={level_xp} />

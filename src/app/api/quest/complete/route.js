@@ -19,7 +19,7 @@ export async function POST(req) {
         const { questId } = await req.json();
 
         const [quest] = await pool.query(
-            `SELECT * FROM Quests WHERE id = ? AND context_type = 'guild' AND guild_id = ?`,
+            `SELECT * FROM Quests WHERE id = ? AND guild_id = ?`,
             [questId, user.guild.guild_id]
         );
 
@@ -28,16 +28,14 @@ export async function POST(req) {
         }
 
         const questData = quest[0];
+        const isPartyQuest = questData.context_type === 'party' && questData.party_id;
 
-        if (questData.status !== 'assigned') {
+        if (!isPartyQuest && questData.status !== 'assigned') {
             return NextResponse.json({ error: 'Quest must be assigned to be completed' }, { status: 400 });
         }
 
-        const assignedUserId = questData.assigned_to;
-
-        const [assignedUser] = await pool.query('SELECT * FROM Users WHERE id = ?', [assignedUserId]);
-        if (!assignedUser.length) {
-            return NextResponse.json({ error: 'Assigned user not found' }, { status: 404 });
+        if (isPartyQuest && questData.status === 'completed') {
+            return NextResponse.json({ error: 'Quest is already completed' }, { status: 400 });
         }
 
         const connection = await pool.getConnection();
@@ -48,6 +46,35 @@ export async function POST(req) {
                 `UPDATE Quests SET status = 'completed', completed_at = NOW() WHERE id = ?`,
                 [questId]
             );
+
+            if (isPartyQuest) {
+                await connection.query(
+                    `UPDATE Parties SET xp_current = xp_current + ? WHERE id = ?`,
+                    [questData.reward_xp, questData.party_id]
+                );
+
+                await connection.commit();
+                connection.release();
+
+                return NextResponse.json({
+                    success: true,
+                    rewards: {
+                        coins: questData.reward_coins,
+                        xp: questData.reward_xp
+                    },
+                    partyId: questData.party_id,
+                    isPartyQuest: true
+                });
+            }
+
+            const assignedUserId = questData.assigned_to;
+            const [assignedUser] = await pool.query('SELECT * FROM Users WHERE id = ?', [assignedUserId]);
+            
+            if (!assignedUser.length) {
+                await connection.rollback();
+                connection.release();
+                return NextResponse.json({ error: 'Assigned user not found' }, { status: 404 });
+            }
 
             await connection.query(
                 `INSERT INTO QuestCompletions (quest_id, user_id) VALUES (?, ?)`,

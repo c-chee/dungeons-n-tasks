@@ -105,8 +105,8 @@ export default function CurrentMissionsCard({ quests, onUpdateStatus, onSubmitCo
     switch (status) {
       case 'assigned':
         return {
-          bg: 'var(--status-available-bg)',
-          text: 'var(--status-available)',
+          bg: 'var(--status-assigned-bg)',
+          text: 'var(--status-assigned)',
           label: 'Assigned'
         };
       case 'in_progress':
@@ -159,7 +159,8 @@ export default function CurrentMissionsCard({ quests, onUpdateStatus, onSubmitCo
       <div 
         key={quest.id} 
         className={`border p-3 rounded cursor-pointer transition-all hover:shadow-md ${
-          isCompleted ? 'bg-gray-50 opacity-75' : 'bg-white/50 hover:bg-gray-50'
+          isCompleted ? 'bg-white/50 opacity-75' : 
+                        'bg-white hover:bg-white/80'
         }`}
         onClick={() => openDetailModal(quest)}
       >
@@ -253,12 +254,14 @@ export default function CurrentMissionsCard({ quests, onUpdateStatus, onSubmitCo
                 <>
                   <BubbleButton 
                     onClick={() => openBlockModal(quest)}
-                    className='bg-red-400 hover:bg-red-500 text-white text-xs'
+                    variant='red'
+                    className='text-xs'
                   >
                     Block
                   </BubbleButton>
                   <BubbleButton 
                     onClick={() => onSubmitComplete && onSubmitComplete(quest.id)}
+                    variant='green'
                     className='bg-green-500 hover:bg-green-600 text-white text-xs'
                   >
                     Submit
@@ -268,7 +271,8 @@ export default function CurrentMissionsCard({ quests, onUpdateStatus, onSubmitCo
               
               {quest.status === 'blocked' && (
                 <BubbleButton 
-                  onClick={() => onUpdateStatus && onUpdateStatus(quest.id, 'in_progress')}
+                  onClick={() => onUpdateStatus && onUpdateStatus(quest.id, 'in_progress')} 
+                  variant='yellow'
                   className='bg-yellow-500 hover:bg-yellow-600 text-white text-xs'
                 >
                   Resume
@@ -290,17 +294,26 @@ export default function CurrentMissionsCard({ quests, onUpdateStatus, onSubmitCo
     );
   };
 
-  if (!quests || quests.length === 0) {
+  if (activeQuests.length === 0) {
     return (
-      <Card variant='default'>
+      <Card variant='green'>
         <h2 className='font-bold text-lg'>Current Missions</h2>
         <p className='text-sm text-gray-500 mt-2'>You have no active missions.</p>
+        
+        {completedQuests.length > 0 && (
+          <div className='mt-6'>
+            <h4 className='text-sm font-semibold text-[var(--dark-brown)] mb-2'>Completed</h4>
+            <div className='flex flex-col gap-2'>
+              {completedQuests.map(quest => renderQuestCard(quest))}
+            </div>
+          </div>
+        )}
       </Card>
     );
   }
 
   return (
-    <Card variant='default'>
+    <Card variant='green'>
       <h2 className='font-bold text-lg'>Current Missions</h2>
       
       <div className='flex flex-col gap-3 mt-2'>
@@ -309,7 +322,7 @@ export default function CurrentMissionsCard({ quests, onUpdateStatus, onSubmitCo
 
       {completedQuests.length > 0 && (
         <div className='mt-6'>
-          <h4 className='text-sm font-semibold text-gray-500 mb-2'>Completed</h4>
+          <h4 className='text-sm font-semibold text-[var(--dark-brown)] mb-2'>Completed</h4>
           <div className='flex flex-col gap-2'>
             {completedQuests.map(quest => renderQuestCard(quest))}
           </div>
@@ -320,13 +333,22 @@ export default function CurrentMissionsCard({ quests, onUpdateStatus, onSubmitCo
       <Modal isOpen={showBlockModal} onClose={() => { setShowBlockModal(false); resetWizard(); }}>
         {wizardState === 'idle' && (
           <>
-            <h2 className='font-bold text-lg mb-4'>Why are you blocked?</h2>
+            <h2 className='mb-2 font-bold text-lg'>Why are you blocked?</h2>
+
             <textarea
               placeholder='Enter reason for blocking...'
               value={blockReason}
               onChange={(e) => setBlockReason(e.target.value)}
               className='w-full border p-2 rounded min-h-[80px]'
             />
+
+            <button
+              onClick={() => setWizardState('asking')}
+              className='text-sm mb-2 text-purple-600 hover:text-purple-800 hover:underline underline-offset-2 cursor-pointer'
+            >
+              Ask the Wizard
+            </button>
+
             <div className='flex gap-2 mt-3'>
               <BubbleButton 
                 onClick={handleBlockSubmit}
@@ -335,22 +357,18 @@ export default function CurrentMissionsCard({ quests, onUpdateStatus, onSubmitCo
               >
                 Submit Block
               </BubbleButton>
-              <BubbleButton onClick={() => setShowBlockModal(false)}>
+              <BubbleButton onClick={() => setShowBlockModal(false)}
+                variant='red'>
                 Cancel
               </BubbleButton>
             </div>
-            <button
-              onClick={() => setWizardState('asking')}
-              className='mt-3 text-sm text-purple-600 hover:text-purple-800 underline'
-            >
-              Ask the Wizard
-            </button>
+
           </>
         )}
         
         {wizardState === 'asking' && (
           <>
-            <h2 className='font-bold text-lg mb-1'>Ask the Wizard</h2>
+            <h2 className='font-bold text-lg mb-1'>The wizard is listening...</h2>
             {currentBlockQuest?.title && (
               <p className='text-sm text-gray-500 mb-3'>Re: {currentBlockQuest.title}</p>
             )}
@@ -358,7 +376,7 @@ export default function CurrentMissionsCard({ quests, onUpdateStatus, onSubmitCo
               placeholder='What is your block?'
               value={wizardMessage}
               onChange={(e) => setWizardMessage(e.target.value)}
-              className='w-full border-2 border-purple-200 rounded p-2 min-h-[80px] focus:border-purple-400 focus:outline-none'
+              className='w-full border rounded p-2 min-h-[80px] focus:outline-none'
               maxLength={500}
             />
             {wizardError && (

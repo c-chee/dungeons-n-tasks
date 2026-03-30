@@ -42,7 +42,17 @@ export async function POST(req) {
             }
         }
 
-        const guildId = quest[0].guild_id;
+        let guildId = quest[0].guild_id;
+
+        if (quest[0].party_id && !guildId) {
+            const [partyRows] = await pool.query(
+                'SELECT guild_id FROM Parties WHERE id = ?',
+                [quest[0].party_id]
+            );
+            if (partyRows.length) {
+                guildId = partyRows[0].guild_id;
+            }
+        }
 
         const [existingRequest] = await pool.query(
             'SELECT * FROM QuestPickupRequests WHERE quest_id = ? AND user_id = ?',

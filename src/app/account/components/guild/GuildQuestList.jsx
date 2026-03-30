@@ -31,6 +31,7 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
     const [editRewardXp, setEditRewardXp] = useState(10);
     const [editAssignType, setEditAssignType] = useState('none');
     const [editSelectedUser, setEditSelectedUser] = useState('');
+    const [editSelectedParty, setEditSelectedParty] = useState('');
 
     const [expandedQuests, setExpandedQuests] = useState({});
 
@@ -68,8 +69,8 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
                 };
             case 'assigned':
                 return {
-                    bg: 'var(--status-available-bg)',
-                    text: 'var(--status-available)',
+                    bg: 'var(--status-assigned-bg)',
+                    text: 'var(--status-assigned)',
                     label: 'Assigned'
                 };
             case 'in_progress':
@@ -152,26 +153,43 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
         setEditDesc(quest.description || '');
         setEditRewardCoins(quest.reward_coins);
         setEditRewardXp(quest.reward_xp);
-        setEditAssignType(quest.assigned_to ? 'user' : 'none');
-        setEditSelectedUser(quest.assigned_to || '');
+        if (quest.context_type === 'party' && quest.party_id) {
+            setEditAssignType('party');
+            setEditSelectedParty(String(quest.party_id));
+            setEditSelectedUser('');
+        } else if (quest.assigned_to) {
+            setEditAssignType('user');
+            setEditSelectedUser(quest.assigned_to);
+            setEditSelectedParty('');
+        } else {
+            setEditAssignType('none');
+            setEditSelectedUser('');
+            setEditSelectedParty('');
+        }
         setShowEditModal(true);
     };
 
     const handleUpdate = async () => {
         if (!editTitle.trim()) return;
+        if (editAssignType === 'party' && !editSelectedParty) return console.warn('Select a party to assign');
+
+        const updateData = {
+            questId: editingQuest.id,
+            title: editTitle,
+            description: editDesc,
+            reward_coins: editRewardCoins,
+            reward_xp: editRewardXp,
+            assigned_to: editAssignType === 'user' ? editSelectedUser : null,
+            context_type: editAssignType === 'party' ? 'party' : 'guild',
+            party_id: editAssignType === 'party' ? editSelectedParty : null
+        };
+        console.log('Updating quest with:', updateData);
 
         try {
             const res = await fetch('/api/quest/update', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    questId: editingQuest.id,
-                    title: editTitle,
-                    description: editDesc,
-                    reward_coins: editRewardCoins,
-                    reward_xp: editRewardXp,
-                    assigned_to: editAssignType === 'user' ? editSelectedUser : null
-                }),
+                body: JSON.stringify(updateData),
             });
 
             if (!res.ok) {
@@ -255,7 +273,7 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
         <div>
             <div className='flex justify-between items-center'>
                 <h3 className='font-semibold'>Guild Quests</h3>
-                {isMaster && <BubbleButton onClick={() => setShowModal(true)}>+ Add</BubbleButton>}
+                {isMaster && <button onClick={() => setShowModal(true)} className='text-[var(--dark-green)] cursor-pointer hover:text-green-600 font-bold'>+ Add</button>}
             </div>
 
             {/* Pending Review Section */}
@@ -269,8 +287,8 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
                             <div key={q.id} className='border p-3 rounded bg-white'>
                                 <div className='flex justify-between items-start'>
                                     <div className='flex-1'>
-                                        <div className='flex items-center gap-2 mb-1'>
-                                            <p className='font-medium'>{q.title}</p>
+                                        <p className='font-medium mb-1'>{q.title}</p>
+                                        <div className='flex items-center gap-2'>
                                             {q.context_type === 'party' && q.party_name && (
                                                 <span className='text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded'>
                                                     Party: {q.party_name}
@@ -286,7 +304,7 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
                                                 Pending Review
                                             </span>
                                         </div>
-                                        <p className='text-sm text-gray-600'>
+                                        <p className='text-sm text-gray-600 mt-1'>
                                             Completed by: {getMemberName(q.assigned_to) || 'Unknown'}
                                         </p>
                                         <div className='flex items-center gap-1 mt-1'>
@@ -304,15 +322,17 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
                                             )}
                                         </div>
                                     </div>
-                                    <div className='flex gap-1 ml-2'>
+                                    <div className='flex flex-col gap-1 ml-2'>
                                         <BubbleButton 
                                             onClick={() => openReviseModal(q)}
+                                            variant='yellow'
                                             className='bg-orange-500 hover:bg-orange-600 text-white text-xs'
                                         >
                                             Revise
                                         </BubbleButton>
                                         <BubbleButton 
                                             onClick={() => handleApproveComplete(q.id)}
+                                            variant='green'
                                             className='bg-green-500 hover:bg-green-600 text-white text-xs'
                                         >
                                             Approve
@@ -339,12 +359,12 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
                     return (
                         <div 
                             key={q.id} 
-                            className='border p-2 rounded relative'
+                            className='border p-2 rounded relative bg-white'
                         >
                             <div className='flex justify-between items-start'>
                                 <div className='flex-1'>
+                                    <p className='font-medium mb-1'>{q.title}</p>
                                     <div className='flex items-center gap-2 mb-1'>
-                                        <p className='font-medium'>{q.title}</p>
                                         {q.context_type === 'party' && q.party_name && (
                                             <span className='text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded'>
                                                 Party: {q.party_name}
@@ -359,12 +379,12 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
                                         >
                                             {statusStyle.label}
                                         </span>
-                                        {assigneeName && (
+                                    </div>
+                                    {assigneeName && (
                                             <span className='text-xs text-gray-600'>
-                                                → {assigneeName}
+                                                Assigned to: {assigneeName}
                                             </span>
                                         )}
-                                    </div>
                                     <p className='text-sm'>{displayDescription}</p>
                                     {isLongDescription && (
                                         <button 
@@ -424,11 +444,24 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
                     <h4 className='text-sm font-medium text-gray-500'>Completed</h4>
                     <div className='flex flex-col gap-1 mt-1'>
                         {completedQuests.map(q => (
-                            <div key={q.id} className='border p-2 rounded bg-gray-50 relative opacity-60'>
-                                <p className='font-medium line-through'>{q.title}</p>
-                                <p className='text-xs text-gray-500'>
-                                    Coins: {q.reward_coins} • XP: {q.reward_xp}
-                                </p>
+                            <div key={q.id} className='border p-2 rounded bg-gray-50 relative opacity-60 group flex justify-between items-start'>
+                                <div>
+                                    <p className='font-medium line-through'>{q.title}</p>
+                                    <p className='text-xs text-gray-500'>
+                                        Coins: {q.reward_coins} • XP: {q.reward_xp}
+                                    </p>
+                                </div>
+                                {isMaster && (
+                                    <button 
+                                        onClick={() => {
+                                            setQuestToDelete(q);
+                                            setShowDeleteModal(true);
+                                        }}
+                                        className='opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 text-sm px-2 py-1'
+                                    >
+                                        Delete
+                                    </button>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -601,15 +634,17 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
                         setEditAssignType(e.target.value);
                         if (e.target.value === 'none') {
                             setEditSelectedUser('');
+                            setEditSelectedParty('');
                         }
                     }}
                 >
                     <option value='none'>Unassigned (Guild Open)</option>
                     <option value='user'>Assign to Member</option>
+                    <option value='party'>Assign to Party</option>
                 </select>
 
                 {editAssignType === 'user' && (
-                    <div className='mb-4'>
+                    <div className='mb-2'>
                         <label className='text-sm font-medium mb-1 block'>Select Member</label>
                         {members.length ? (
                             <select
@@ -630,14 +665,37 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
                     </div>
                 )}
 
+                {editAssignType === 'party' && (
+                    <div className='mb-4'>
+                        <label className='text-sm font-medium mb-1 block'>Select Party</label>
+                        {parties.length ? (
+                            <select
+                                className='border p-1 w-full'
+                                onChange={(e) => setEditSelectedParty(e.target.value ? String(e.target.value) : '')}
+                                value={editSelectedParty}
+                            >
+                                <option value=''>Select Party</option>
+                                {parties.map(p => (
+                                    <option key={p.id} value={p.id}>
+                                        {p.name}
+                                    </option>
+                                ))}
+                            </select>
+                        ) : (
+                            <p className='text-sm text-gray-500'>No parties available</p>
+                        )}
+                    </div>
+                )}
+
                 <div className='flex gap-2'>
                     <BubbleButton 
                         onClick={handleDelete}
+                        variant='red'
                         className='bg-red-500 hover:bg-red-600 text-white'
                     >
                         Delete Quest
                     </BubbleButton>
-                    <BubbleButton onClick={handleUpdate} disabled={!editTitle.trim()}>
+                    <BubbleButton onClick={handleUpdate} disabled={!editTitle.trim() || (editAssignType === 'party' && !editSelectedParty)}>
                         Save Changes
                     </BubbleButton>
                 </div>
@@ -659,11 +717,12 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
                 <div className='flex gap-2 mt-4'>
                     <BubbleButton 
                         onClick={handleReviseSubmit}
+                        variant='green'
                         className='bg-orange-500 hover:bg-orange-600 text-white'
                     >
                         Send Back
                     </BubbleButton>
-                    <BubbleButton onClick={() => setShowReviseModal(false)}>
+                    <BubbleButton onClick={() => setShowReviseModal(false)} variant='red'>
                         Cancel
                     </BubbleButton>
                 </div>
@@ -676,7 +735,7 @@ export default function GuildQuestsList({ initialQuests, pendingReviewQuests = [
             }}>
                 <h2 className='font-bold text-lg mb-4 text-red-600'>Block Reason</h2>
                 {currentBlockQuest?.block_reason && (
-                    <div className='p-3 bg-red-50 rounded'>
+                    <div className='p-3 bg-red-50 rounded mb-4'>
                         <p className='text-gray-700'>{currentBlockQuest.block_reason}</p>
                     </div>
                 )}

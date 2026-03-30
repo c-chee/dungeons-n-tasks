@@ -13,15 +13,32 @@ export async function POST(req) {
         const { questId, status, block_reason } = await req.json();
 
         const [quest] = await pool.query(
-            `SELECT * FROM Quests WHERE id = ? AND assigned_to = ?`,
-            [questId, user.id]
+            `SELECT * FROM Quests WHERE id = ?`,
+            [questId]
         );
 
         if (!quest.length) {
-            return NextResponse.json({ error: 'Quest not found or not assigned to you' }, { status: 404 });
+            return NextResponse.json({ error: 'Quest not found' }, { status: 404 });
         }
 
-        const currentStatus = quest[0].status;
+        const questData = quest[0];
+        let hasAccess = false;
+
+        if (questData.assigned_to === user.id) {
+            hasAccess = true;
+        } else if (questData.context_type === 'party' && questData.party_id) {
+            const [partyMember] = await pool.query(
+                `SELECT * FROM PartyMembers WHERE party_id = ? AND user_id = ?`,
+                [questData.party_id, user.id]
+            );
+            hasAccess = partyMember.length > 0;
+        }
+
+        if (!hasAccess) {
+            return NextResponse.json({ error: 'Quest not assigned to you' }, { status: 403 });
+        }
+
+        const currentStatus = questData.status;
 
         const validTransitions = {
             'assigned': ['in_progress'],

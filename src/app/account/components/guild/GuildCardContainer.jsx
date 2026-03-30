@@ -174,24 +174,30 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
     };
 
     return (
-        <div className='flex flex-col md:flex-row gap-4 border p-4 rounded shadow-md bg-white'>
-            <MembersList
-                members={guildMembers}
-                guildRequests={guildRequests}
-                isMaster={isMaster}
-                user={user}
-                onRemoveMember={onRemoveMember}
-                onApproveGuild={handleApproveGuild}
-                onRejectGuild={handleRejectGuild}
-            />
+        <div className='flex flex-col border p-4 rounded shadow-md bg-[var(--status-available-bg)]'>
+            <div className='text-center mb-4'>
+                <p className='arcade text-sm text-[var(--dark-brown)] mb-[2px]'>Guild</p>
+                <h2 className='arcade outline-text-brown text-[var(--yellow)] text-xl font-bold'>{guild?.name || 'Guild'}</h2>
+            </div>
 
-            <div className='flex-1 flex flex-col gap-4'>
-                {isMaster && (
-                    <GuildCodeCard
-                        joinCode={joinCode}
-                        onCopy={handleCopyCode}
-                    />
-                )}
+            <div className='flex flex-col md:flex-row gap-4'>
+                <MembersList
+                    members={guildMembers}
+                    guildRequests={guildRequests}
+                    isMaster={isMaster}
+                    user={user}
+                    onRemoveMember={onRemoveMember}
+                    onApproveGuild={handleApproveGuild}
+                    onRejectGuild={handleRejectGuild}
+                />
+
+                <div className='flex-1 flex flex-col gap-4'>
+                    {isMaster && (
+                        <GuildCodeCard
+                            joinCode={joinCode}
+                            onCopy={handleCopyCode}
+                        />
+                    )}
 
                 <GuildQuestsList
                     initialQuests={allGuildQuests}
@@ -206,15 +212,23 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
                 />
 
                 {isMaster && pickupRequests.length > 0 && (
-                    <Card variant='default'>
-                        <h2 className='font-bold text-lg mb-4'>Pickup Requests</h2>
+                    <Card variant='orange'>
+                        <h2 className='font-semibold text-lg text-orange-600 mb-4'>Pickup Requests</h2>
                         <div className='space-y-3'>
                             {pickupRequests.map(request => (
-                                <div key={request.id} className='border p-3 rounded bg-gray-50'>
+                                <div key={request.id} className='border p-3 rounded bg-white'>
                                     <div className='flex justify-between items-start'>
                                         <div>
-                                            <h4 className='font-medium'>{request.quest_title}</h4>
+                                            <div className='flex items-center gap-2'>
+                                                <h4 className='font-medium'>{request.quest_title}</h4>
+                                            </div>
+                                            {request.context_type === 'party' && request.party_name && (
+                                                    <span className='text-xs px-2 py-0.5 bg-purple-100 text-purple-700 rounded'>
+                                                        Party: {request.party_name}
+                                                    </span>
+                                                )}
                                             <div className='flex items-center gap-2 mt-1'>
+                                                
                                                 <span className='text-sm text-gray-600'>
                                                     {request.first_name} {request.last_name}
                                                 </span>
@@ -223,7 +237,7 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className='flex gap-2'>
+                                        <div className='flex flex-col gap-2'>
                                             <BubbleButton 
                                                 onClick={() => handleAcceptPickup(request.id)}
                                                 className='bg-green-500 hover:bg-green-600 text-white text-xs'
@@ -232,7 +246,8 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
                                             </BubbleButton>
                                             <BubbleButton 
                                                 onClick={() => handleDeclinePickup(request.id)}
-                                                className='bg-gray-400 hover:bg-gray-500 text-white text-xs'
+                                                variant='red'
+                                                className='text-xs'
                                             >
                                                 Decline
                                             </BubbleButton>
@@ -276,6 +291,7 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
                     onRemoveFromParty={handleRemoveFromParty}
                     onCreateParty={() => setShowCreateModal(true)}
                 />
+            </div>
             </div>
 
             <PartyCreationModal

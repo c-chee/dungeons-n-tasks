@@ -29,15 +29,12 @@ export async function POST(req) {
             return NextResponse.json({ error: 'Quest is not pending review' }, { status: 400 });
         }
 
-        const assignedUserId = quest[0].assigned_to;
-        const rewardCoins = quest[0].reward_coins;
-        const rewardXp = quest[0].reward_xp;
-        const partyId = quest[0].party_id;
-
-        const [assignedUser] = await pool.query('SELECT * FROM Users WHERE id = ?', [assignedUserId]);
-        if (!assignedUser.length) {
-            return NextResponse.json({ error: 'Assigned user not found' }, { status: 404 });
-        }
+        const questData = quest[0];
+        const rewardCoins = questData.reward_coins;
+        const rewardXp = questData.reward_xp;
+        const partyId = questData.party_id;
+        const contextType = questData.context_type;
+        const isPartyQuest = contextType === 'party' && partyId;
 
         const connection = await pool.getConnection();
         await connection.beginTransaction();
@@ -47,6 +44,35 @@ export async function POST(req) {
                 `UPDATE Quests SET status = 'completed', completed_at = NOW(), revision_note = NULL WHERE id = ?`,
                 [questId]
             );
+
+            if (isPartyQuest) {
+                await connection.query(
+                    `UPDATE Parties SET xp_current = xp_current + ? WHERE id = ?`,
+                    [rewardXp, partyId]
+                );
+
+                await connection.commit();
+                connection.release();
+
+                return NextResponse.json({
+                    success: true,
+                    rewards: {
+                        coins: rewardCoins,
+                        xp: rewardXp
+                    },
+                    partyId: partyId,
+                    isPartyQuest: true
+                });
+            }
+
+            const assignedUserId = questData.assigned_to;
+            const [assignedUser] = await pool.query('SELECT * FROM Users WHERE id = ?', [assignedUserId]);
+            
+            if (!assignedUser.length) {
+                await connection.rollback();
+                connection.release();
+                return NextResponse.json({ error: 'Assigned user not found' }, { status: 404 });
+            }
 
             await connection.query(
                 `INSERT INTO QuestCompletions (quest_id, user_id) VALUES (?, ?)`,
@@ -61,13 +87,6 @@ export async function POST(req) {
                 `UPDATE Users SET coins = ?, level_xp = ?, level = ? WHERE id = ?`,
                 [newCoins, newXp, newLevel, assignedUserId]
             );
-
-            if (partyId) {
-                await connection.query(
-                    `UPDATE Parties SET xp_current = xp_current + ? WHERE id = ?`,
-                    [rewardXp, partyId]
-                );
-            }
 
             await connection.commit();
             connection.release();

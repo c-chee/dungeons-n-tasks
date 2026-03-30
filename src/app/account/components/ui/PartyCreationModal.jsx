@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Modal from '../ui/Modal';
 import BubbleButton from '@/components/ui/BubbleButton';
 import { StarIcon } from './Icons';
@@ -14,6 +14,12 @@ export default function PartyCreationModal({ isOpen, onClose, onSuccess, members
     );
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        setName(existingParty?.name || '');
+        setLeaderId(existingParty?.leader_id || '');
+        setSelectedMembers(existingParty?.members?.map(m => m.user_id) || []);
+    }, [existingParty]);
 
     const handleMemberToggle = (memberId) => {
         setSelectedMembers(prev => {

@@ -14,9 +14,11 @@
   --light-blue: #cae0d8;
   --light-green: #afbb8c;
   --dark-green: #43725b;
+  --light-brown: #cbbab5;
   --brown: #9f837a;
   --cream: #eae7d2;
   --dark-brown: #3d242c;
+  --light-yellow: #fef9c3;
   --yellow: #f0ce6f;
   --red: #dd7874;
   --dark-red: #872522;
@@ -24,15 +26,17 @@
   /* ---------------------
       Quest Status Colors
   ------------------------ */
+  --status-assigned: #d52ab0;
+  --status-assigned-bg: #ffcff5;
   --status-available: #3b82f6;
   --status-available-bg: #dbeafe;
-  --status-in-progress: #eab308;
-  --status-in-progress-bg: #fef9c3;
-  --status-blocked: #ef4444;
+  --status-in-progress: #7b5d01;
+  --status-in-progress-bg: #f7f0a3;
+  --status-blocked: #b51b1b;
   --status-blocked-bg: #fee2e2;
-  --status-pending-review: #a855f7;
+  --status-pending-review: #5f10a9;
   --status-pending-review-bg: #f3e8ff;
-  --status-completed: #22c55e;
+  --status-completed: #43725b;
   --status-completed-bg: #dcfce7;
 
   /* ---------------------
