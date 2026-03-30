@@ -6,6 +6,7 @@
 import { useState } from 'react';
 import DashboardHome from './components/DashboardHome';
 import QuestBoard from './components/QuestBoard';
+import Shop from './components/Shop';
 import Toolbar from './components/Toolbar';
 
 export default function DashboardClient({ data }) {
@@ -60,8 +61,8 @@ export default function DashboardClient({ data }) {
 
     const bgImages = {
         home: '/images/guild.png',
-        quests: '/images/quests-bg.png',
-        shop: '/images/shop-bg.png',
+        quests: '/images/field-bg.png',
+        shop: '/images/field-bg.png',
     };
 
     return (
@@ -70,7 +71,7 @@ export default function DashboardClient({ data }) {
             style={{ backgroundImage: `url(${bgImages[view]})` }}
         >
             {/* Main content */}
-            <div className='flex-1 w-full p-6 mt-[4em]'>
+            <div className='flex-1 w-full p-4  md:p-8 lg:p-10 mt-[4em]'>
                 {view === 'home' && <DashboardHome data={dashboardData} />}
                 {view === 'quests' && (
                     <QuestBoard 
@@ -80,7 +81,7 @@ export default function DashboardClient({ data }) {
                         onRevise={handleRevise}
                     />
                 )}
-                {view === 'shop' && <div>Shop coming soon</div>}
+                {view === 'shop' && <Shop />}
             </div>
 
             {/* Toolbar for navigation */}

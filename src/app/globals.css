@@ -87,3 +87,16 @@ body {
     -2px  0px 0 #fff,
       0px -2px 0 #fff;
 }
+
+/* Brown outline */
+.outline-text-brown {
+  text-shadow:
+    -2px -2px 0 #3d242c,
+      2px -2px 0 #3d242c,
+    -2px  2px 0 #3d242c,
+      2px  2px 0 #3d242c,
+      0px  2px 0 #3d242c,
+      2px  0px 0 #3d242c,
+    -2px  0px 0 #3d242c,
+      0px -2px 0 #3d242c;
+}
