@@ -3,7 +3,7 @@
 import { usePathname } from 'next/navigation';
 import Navbar from './Navbar';
 import AccountNavbar from './AccountNavbar';
-// import Footer from './Footer';
+import Footer from './Footer';
 
 export default function LayoutShell({ children }) {
     const pathname = usePathname();
@@ -17,12 +17,7 @@ export default function LayoutShell({ children }) {
                 {children}
             </main>
 
-            {/* {isAccount
-                ? <Footer type='account' />
-                : <Footer type='landing' />
-            } */}
-            
-            {/* {!isAccount && <Footer type='landing' />} */}
+            {!isAccount && <Footer />}
         </>
     );
 }
