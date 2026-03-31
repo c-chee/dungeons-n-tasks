@@ -1,6 +1,6 @@
 'use client';
 
-export default function Modal({ isOpen, onClose, children }) {
+export default function Modal({ isOpen, onClose, children, className = '' }) {
     if (!isOpen) return null;
 
     return (
@@ -9,7 +9,7 @@ export default function Modal({ isOpen, onClose, children }) {
             onClick={onClose}
         >
             <div 
-                className='bg-white p-4 rounded shadow-lg w-full max-w-md relative'
+                className={`bg-white p-4 rounded shadow-lg w-full max-w-md relative ${className}`}
                 onClick={(e) => e.stopPropagation()}
             >
                 <button

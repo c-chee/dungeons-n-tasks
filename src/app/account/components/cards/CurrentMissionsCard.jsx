@@ -330,114 +330,123 @@ export default function CurrentMissionsCard({ quests, onUpdateStatus, onSubmitCo
       )}
 
       {/* Block Modal */}
-      <Modal isOpen={showBlockModal} onClose={() => { setShowBlockModal(false); resetWizard(); }}>
-        {/* Wizard Image - Bottom Left Corner (only for asking and response states) */}
-        {(wizardState === 'asking' || wizardState === 'response') && (
-          <div className='absolute bottom-2 left-2 w-24 pointer-events-none'>
-            <img src='/images/grey-wizard.png' alt='Wizard' className='w-full' />
+      <Modal 
+        isOpen={showBlockModal} 
+        onClose={() => { setShowBlockModal(false); resetWizard(); }}
+        className={(wizardState === 'asking' || wizardState === 'response') ? 'max-w-lg' : 'max-w-md'}
+      >
+        {/* Column layout for wizard states */}
+        {(wizardState === 'asking' || wizardState === 'response') ? (
+          <div className='flex gap-4'>
+            {/* Left Column - Wizard Image */}
+            <div className='w-1/3 flex items-center'>
+              <img src='/images/grey-wizard.png' alt='Wizard' className='w-full rounded' />
+            </div>
+            
+            {/* Right Column - Content */}
+            <div className='w-2/3'>
+              {wizardState === 'asking' && (
+                <>
+                  <h2 className='font-bold text-lg mb-1'>The wizard is listening...</h2>
+                  {currentBlockQuest?.title && (
+                    <p className='text-sm text-gray-500 mb-3'>Re: {currentBlockQuest.title}</p>
+                  )}
+                  <textarea
+                    placeholder='What is your block?'
+                    value={wizardMessage}
+                    onChange={(e) => setWizardMessage(e.target.value)}
+                    className='w-full border rounded p-2 min-h-[80px] focus:outline-none'
+                    maxLength={500}
+                  />
+                  {wizardError && (
+                    <p className='text-red-500 text-sm mt-2'>{wizardError}</p>
+                  )}
+                  <div className='flex gap-2 mt-3'>
+                    <BubbleButton 
+                      onClick={handleAskWizard}
+                      disabled={!wizardMessage.trim() || wizardLoading}
+                      className='bg-purple-600 hover:bg-purple-700 text-white disabled:bg-gray-300'
+                    >
+                      {wizardLoading ? 'Consulting...' : 'Ask the Wizard'}
+                    </BubbleButton>
+                    <BubbleButton onClick={() => setWizardState('idle')}>
+                      Back
+                    </BubbleButton>
+                  </div>
+                </>
+              )}
+              
+              {wizardState === 'response' && (
+                <>
+                  <h2 className='font-bold text-lg mb-3'>The Wizard Speaks</h2>
+                  <div className='bg-purple-50 border border-purple-200 rounded p-3 mb-4'>
+                    <p className='text-gray-700'>{wizardSuggestion}</p>
+                  </div>
+                  <p className='text-sm text-gray-600 mb-3'>Was this helpful?</p>
+                  <div className='flex gap-2'>
+                    <BubbleButton onClick={() => { setShowBlockModal(false); resetWizard(); }} className='bg-green-500 hover:bg-green-600 text-white'>
+                      Yes
+                    </BubbleButton>
+                    <BubbleButton onClick={handleWizardNo} className='bg-gray-400 hover:bg-gray-500 text-white'>
+                      No
+                    </BubbleButton>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
+        ) : (
+          /* Just content for idle and final states */
+          <>
+            {wizardState === 'idle' && (
+              <>
+                <h2 className='mb-2 font-bold text-lg'>Why are you blocked?</h2>
+
+                <textarea
+                  placeholder='Enter reason for blocking...'
+                  value={blockReason}
+                  onChange={(e) => setBlockReason(e.target.value)}
+                  className='w-full border p-2 rounded min-h-[80px]'
+                />
+
+                <button
+                  onClick={() => setWizardState('asking')}
+                  className='text-sm mb-2 text-purple-600 hover:text-purple-800 hover:underline underline-offset-2 cursor-pointer'
+                >
+                  Ask the Wizard
+                </button>
+
+                <div className='flex gap-2 mt-3'>
+                  <BubbleButton 
+                    onClick={handleBlockSubmit}
+                    disabled={!blockReason.trim()}
+                    className='bg-red-500 hover:bg-red-600 text-white'
+                  >
+                    Submit Block
+                  </BubbleButton>
+                  <BubbleButton onClick={() => setShowBlockModal(false)}
+                    variant='red'>
+                    Cancel
+                  </BubbleButton>
+                </div>
+              </>
+            )}
+            
+            {wizardState === 'final' && (
+              <>
+                <h2 className='font-bold text-lg mb-3'>The Wizard</h2>
+                <div className='bg-purple-50 border border-purple-200 rounded p-3 mb-4'>
+                  <p className='text-gray-700'>
+                    The wizard's wisdom has limits, brave adventurer. Submit your block reason in your own words.
+                  </p>
+                </div>
+                <BubbleButton onClick={() => { setShowBlockModal(false); resetWizard(); }} className='bg-purple-600 hover:bg-purple-700 text-white'>
+                  Close
+                </BubbleButton>
+              </>
+            )}
+          </>
         )}
-
-        {/* Content with left padding to avoid text under image */}
-        <div className={(wizardState === 'asking' || wizardState === 'response') ? 'pl-28' : ''}>
-          {wizardState === 'idle' && (
-            <>
-              <h2 className='mb-2 font-bold text-lg'>Why are you blocked?</h2>
-
-              <textarea
-                placeholder='Enter reason for blocking...'
-                value={blockReason}
-                onChange={(e) => setBlockReason(e.target.value)}
-                className='w-full border p-2 rounded min-h-[80px]'
-              />
-
-              <button
-                onClick={() => setWizardState('asking')}
-                className='text-sm mb-2 text-purple-600 hover:text-purple-800 hover:underline underline-offset-2 cursor-pointer'
-              >
-                Ask the Wizard
-              </button>
-
-              <div className='flex gap-2 mt-3'>
-                <BubbleButton 
-                  onClick={handleBlockSubmit}
-                  disabled={!blockReason.trim()}
-                  className='bg-red-500 hover:bg-red-600 text-white'
-                >
-                  Submit Block
-                </BubbleButton>
-                <BubbleButton onClick={() => setShowBlockModal(false)}
-                  variant='red'>
-                  Cancel
-                </BubbleButton>
-              </div>
-
-            </>
-          )}
-          
-          {wizardState === 'asking' && (
-            <>
-              <h2 className='font-bold text-lg mb-1'>The wizard is listening...</h2>
-              {currentBlockQuest?.title && (
-                <p className='text-sm text-gray-500 mb-3'>Re: {currentBlockQuest.title}</p>
-              )}
-              <textarea
-                placeholder='What is your block?'
-                value={wizardMessage}
-                onChange={(e) => setWizardMessage(e.target.value)}
-                className='w-full border rounded p-2 min-h-[80px] focus:outline-none'
-                maxLength={500}
-              />
-              {wizardError && (
-                <p className='text-red-500 text-sm mt-2'>{wizardError}</p>
-              )}
-              <div className='flex gap-2 mt-3'>
-                <BubbleButton 
-                  onClick={handleAskWizard}
-                  disabled={!wizardMessage.trim() || wizardLoading}
-                  className='bg-purple-600 hover:bg-purple-700 text-white disabled:bg-gray-300'
-                >
-                  {wizardLoading ? 'Consulting...' : 'Ask the Wizard'}
-                </BubbleButton>
-                <BubbleButton onClick={() => setWizardState('idle')}>
-                  Back
-                </BubbleButton>
-              </div>
-            </>
-          )}
-          
-          {wizardState === 'response' && (
-            <>
-              <h2 className='font-bold text-lg mb-3'>The Wizard Speaks</h2>
-              <div className='bg-purple-50 border border-purple-200 rounded p-3 mb-4'>
-                <p className='text-gray-700'>{wizardSuggestion}</p>
-              </div>
-              <p className='text-sm text-gray-600 mb-3'>Was this helpful?</p>
-              <div className='flex gap-2'>
-                <BubbleButton onClick={() => { setShowBlockModal(false); resetWizard(); }} className='bg-green-500 hover:bg-green-600 text-white'>
-                  Yes
-                </BubbleButton>
-                <BubbleButton onClick={handleWizardNo} className='bg-gray-400 hover:bg-gray-500 text-white'>
-                  No
-                </BubbleButton>
-              </div>
-            </>
-          )}
-          
-          {wizardState === 'final' && (
-            <>
-              <h2 className='font-bold text-lg mb-3'>The Wizard</h2>
-              <div className='bg-purple-50 border border-purple-200 rounded p-3 mb-4'>
-                <p className='text-gray-700'>
-                  The wizard's wisdom has limits, brave adventurer. Submit your block reason in your own words.
-                </p>
-              </div>
-              <BubbleButton onClick={() => { setShowBlockModal(false); resetWizard(); }} className='bg-purple-600 hover:bg-purple-700 text-white'>
-                Close
-              </BubbleButton>
-            </>
-          )}
-        </div>
       </Modal>
 
       {/* Block Reason View Modal */}
