@@ -196,6 +196,7 @@ export default function GuildContainer({ guild, guildQuests, guildRequests, guil
                         <GuildCodeCard
                             joinCode={joinCode}
                             onCopy={handleCopyCode}
+                            onRefresh={handleRefreshCode}
                         />
                     )}
 
