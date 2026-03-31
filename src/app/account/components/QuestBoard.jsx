@@ -87,6 +87,22 @@ export default function QuestBoard({ data, onRefresh, onApproveComplete, onRevis
         }
     };
 
+    const handleCancelRequest = async (questId) => {
+        try {
+            const res = await fetch('/api/quest/pickup/cancel', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ questId }),
+            });
+            const result = await res.json();
+            if (!res.ok) throw new Error(result.error);
+            showToast('Pickup request cancelled', 'success');
+            if (onRefresh) onRefresh();
+        } catch (err) {
+            showToast(err.message, 'error');
+        }
+    };
+
     const handleApproveComplete = async (questId) => {
         try {
             if (onApproveComplete) {
