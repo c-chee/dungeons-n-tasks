@@ -7,8 +7,9 @@ import jwt from 'jsonwebtoken';
  * - Verifies JWT token
  * - Redirects to login if missing or invalid
  */
-export default function AccountLayout({ children }) {
-    const token = cookies().get('token')?.value; // Reads the token from cookies
+export default async function AccountLayout({ children }) {
+    const cookieStore = await cookies();
+    const token = cookieStore.get('token')?.value;
 
     // If token does not exist, redirect user to login
     if (!token) {

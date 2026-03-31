@@ -108,7 +108,7 @@ export default function DashboardHome({ data }) {
 
     return (
         <div className='min-h-screen max-w-7xl mx-auto
-                        bg-[url("/images/home-bg.png")] bg-cover bg-center bg-no-repeat
+                        bg-[url("/images/guild.png")] bg-cover bg-center bg-no-repeat
                         pb-[3em]'>
 
             <div className='flex flex-col lg:flex-row gap-6'>
