@@ -11,7 +11,7 @@ const pool =
         database: process.env.DB_NAME,
 
         waitForConnections: true,
-        connectionLimit: 5, // IMPORTANT (Vercel-friendly)
+        connectionLimit: 5,
         queueLimit: 0,
     });
 
