@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server';
 
 const SYSTEM_PROMPT = `You are a wise wizard mentor in a fantasy RPG helping an adventurer. 
-The adventurer is stuck on a quest. Provide encouraging, practical advice in 2-3 sentences.
+The adventurer is stuck on a quest. Provide encouraging, practical real life advice in 2-3 sentences.
 Be specific to their situation if possible. Be warm and supportive.`;
+
+const HF_API_URL = 'https://router.huggingface.co/v1/chat/completions';
+const MAX_RETRIES = 3;
+const RETRY_DELAY = 2000;
 
 function sanitizeInput(input) {
     if (!input || typeof input !== 'string') return '';
@@ -19,6 +23,62 @@ function validateOutput(output) {
     if (output.length > 1000) return false;
     if (/<script|javascript:|on\w+=/i.test(output)) return false;
     return true;
+}
+
+async function callHuggingFace(apiKey, userPrompt, maxRetries = MAX_RETRIES) {
+    let lastError = null;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const response = await fetch(HF_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: 'Qwen/Qwen2.5-7B-Instruct',
+                    messages: [
+                        { role: 'user', content: userPrompt }
+                    ],
+                    max_tokens: 200,
+                    temperature: 0.7
+                })
+            });
+
+            if (response.ok) {
+                return { response, error: null };
+            }
+
+            const errorData = await response.json().catch(() => ({}));
+            lastError = { status: response.status, data: errorData };
+            console.error(`HuggingFace API attempt ${attempt} failed:`, response.status, errorData);
+
+            if (response.status === 503 && attempt < maxRetries) {
+                console.log(`Model loading, retrying in ${RETRY_DELAY * attempt}ms... (attempt ${attempt}/${maxRetries})`);
+                await new Promise(r => setTimeout(r, RETRY_DELAY * attempt));
+                continue;
+            }
+
+            if (response.status === 410) {
+                lastError = { status: 410, data: { error: 'API endpoint deprecated' } };
+                break;
+            }
+
+            break;
+
+        } catch (err) {
+            lastError = { status: 0, data: { error: err.message } };
+            console.error(`HuggingFace API attempt ${attempt} threw error:`, err.message);
+            
+            if (attempt < maxRetries) {
+                await new Promise(r => setTimeout(r, RETRY_DELAY * attempt));
+                continue;
+            }
+        }
+    }
+
+    return { response: null, error: lastError };
 }
 
 export async function POST(request) {
@@ -51,36 +111,21 @@ export async function POST(request) {
 
         const userPrompt = `System: ${SYSTEM_PROMPT}${questContext}\n\nAdventurer: ${sanitizedMessage}\nWizard:`;
 
-        const response = await fetch(
-            'https://api-inference.huggingface.co/models/Qwen/Qwen2.5-7B-Instruct/v1/chat/completions',
-            {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${apiKey}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    model: 'Qwen/Qwen2.5-7B-Instruct',
-                    messages: [
-                        { role: 'user', content: userPrompt }
-                    ],
-                    max_tokens: 200,
-                    temperature: 0.7
-                })
-            }
-        );
+        const { response, error } = await callHuggingFace(apiKey, userPrompt);
 
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error('HuggingFace API error:', response.status, errorData);
-            
-            if (response.status === 503) {
+        if (error) {
+            if (error.status === 410) {
+                return NextResponse.json(
+                    { error: 'AI service configuration error. Please contact support.' },
+                    { status: 500 }
+                );
+            }
+            if (error.status === 503) {
                 return NextResponse.json(
                     { error: 'The wizard is temporarily unavailable. Please try again in a moment.' },
                     { status: 503 }
                 );
             }
-            
             return NextResponse.json(
                 { error: 'Failed to consult the wizard. Please try again.' },
                 { status: 500 }
