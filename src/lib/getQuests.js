@@ -153,13 +153,13 @@ export async function getQuests(userId, guildId, partyId) {
          LEFT JOIN Guilds g ON q.guild_id = g.id
          LEFT JOIN Parties p ON q.party_id = p.id
          WHERE q.assigned_to = ? AND q.status IN ('assigned', 'in_progress', 'blocked', 'pending_review', 'completed')`,
-        [userId]
+        [Number(userId)]
     );
     assignedQuests = assignedRows;
 
     const [userRequests] = await pool.query(
         `SELECT * FROM QuestPickupRequests WHERE user_id = ? AND status = 'pending'`,
-        [userId]
+        [Number(userId)]
     );
     const userPendingRequests = userRequests;
 

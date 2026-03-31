@@ -24,7 +24,7 @@ export async function POST(req) {
         const questData = quest[0];
         let hasAccess = false;
 
-        if (questData.assigned_to === user.id) {
+        if (Number(questData.assigned_to) === Number(user.id)) {
             hasAccess = true;
         } else if (questData.context_type === 'party' && questData.party_id) {
             const [partyMember] = await pool.query(
