@@ -3,7 +3,9 @@ import { useState, useEffect, useRef } from 'react';
 
 export default function Instructions() {
     const [isVisible, setIsVisible] = useState(false);
+    const [cardVisible, setCardVisible] = useState([false, false, false, false]);
     const ref = useRef();
+    const cardRefs = useRef([]);
 
     useEffect(() => {
         const observer = new IntersectionObserver(
@@ -18,6 +20,29 @@ export default function Instructions() {
         
         if (ref.current) observer.observe(ref.current);
         return () => observer.disconnect();
+    }, []);
+
+    useEffect(() => {
+        const observers = cardRefs.current.map((cardRef, index) => {
+            const observer = new IntersectionObserver(
+                ([entry]) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            setCardVisible(prev => {
+                                const newVis = [...prev];
+                                newVis[index] = true;
+                                return newVis;
+                            });
+                        }, index * 100);
+                        observer.disconnect();
+                    }
+                },
+                { threshold: 0.3 }
+            );
+            if (cardRef) observer.observe(cardRef);
+            return observer;
+        });
+        return () => observers.forEach(o => o.disconnect());
     }, []);
 
     const howItWorksSteps = [
@@ -54,12 +79,18 @@ export default function Instructions() {
                     {/* 2-column layout: text left, image right on lg; stacked on mobile */}
                     <div className='flex flex-col lg:grid lg:grid-cols-2 lg:gap-6'>
                         
-                        {/* Left Column - Stacked Cards */}
+                        {/* Left Column - Stacked Cards with staggered animation */}
                         <div className='flex flex-col text-center align-middle gap-4 order-2 lg:order-1'>
                             {howItWorksSteps.map((item, index) => (
                                 <div 
                                     key={index}
-                                    className='bg-[var(--light-green)] border-2 border-[var(--dark-brown)] rounded-lg px-6 py-4 flex justify-between'
+                                    ref={el => cardRefs.current[index] = el}
+                                    className={`
+                                        bg-[var(--light-green)] border-2 border-[var(--dark-brown)] rounded-lg px-6 py-4 flex justify-between
+                                        transition-all duration-500 ease-out
+                                        ${cardVisible[index] ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}
+                                    `}
+                                    style={{ transitionDelay: cardVisible[index] ? '0ms' : `${index * 100}ms` }}
                                 >
                                     <h3 className='arcade text-lg lg:text-xl text-[var(--dark-brown)] mb-1'>
                                         {item.term}
@@ -80,11 +111,11 @@ export default function Instructions() {
                                 className='w-full h-full object-cover rounded-lg border-2 border-[var(--dark-brown)]'
                             />
                             
-                            {/* Wizard - Slides down from top, flipped horizontally */}
+                            {/* Wizard - Slides from right, flipped horizontally */}
                             <div 
                                 className={`
                                     absolute right-0 w-[15em] lg:w-[20em] transition-transform duration-1000 ease-out z-10 -mt-[11em] lg:-mt-[13em]
-                                    ${isVisible ? 'translate-y-0' : '-translate-y-full'}
+                                    ${isVisible ? 'translate-x-0' : 'translate-x-full'}
                                     scale-x-[-1]
                                 `}
                             >
