@@ -1,0 +1,15 @@
+{
+  "guildMaster": {
+    "firstName": "GM",
+    "lastName": "Test",
+    "email": "gm@test.com",
+    "password": "testpassword123",
+    "guildName": "Test Guild"
+  },
+  "member": {
+    "firstName": "Member",
+    "lastName": "Test",
+    "email": "member@test.com",
+    "password": "testpassword123"
+  }
+}

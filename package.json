@@ -6,7 +6,10 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run",
+    "cypress:test": "npm run db:reset && cypress run"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
@@ -23,6 +26,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "cypress": "^15.13.0",
     "eslint": "^9",
     "eslint-config-next": "15.4.8",
     "tailwindcss": "^4"
