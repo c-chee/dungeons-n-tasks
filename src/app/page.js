@@ -1,6 +1,7 @@
 import Hero from '@/components/sections/Hero';
 import About from '@/components/sections/About';
 import Instructions from '@/components/sections/Instructions';
+import AI from '@/components/sections/AI';
 
 export default function Home() {
   return (
@@ -8,6 +9,7 @@ export default function Home() {
       <Hero />
       <About />
       <Instructions />
+      <AI />
     </div>
   );
 }
